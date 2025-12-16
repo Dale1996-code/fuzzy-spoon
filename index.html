@@ -4,143 +4,55 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Walmart Academy Trainer Dashboard — Pro (v3)</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --wm-blue:#0071ce;--wm-blue-dark:#004c87;--good:#00a651;--warn:#ffb81c;--bad:#e31837;
-  --bg1:#f5f7fa;--bg2:#c3cfe2;--text:#1c2128;--card:#fff;--muted:#6c757d;
-  --hd-pad:8px; --hd-fs:1.1rem; --hd-sub:.9rem;
-}
-[data-theme="dark"]{--bg1:#0f1115;--bg2:#151924;--text:#e9ecef;--card:#1b2130;--muted:#aab2c8}
-body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);min-height:100vh;color:var(--text)}
-
-/* ===== Header (not sticky by default) ===== */
-.header{
-  background:linear-gradient(135deg,var(--wm-blue) 0%,var(--wm-blue-dark) 100%);
-  color:#fff;
-  padding:var(--hd-pad) 10px;
-  text-align:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.12);
-}
-.header h1{font-size:var(--hd-fs);line-height:1;margin-bottom:2px;text-shadow:1px 1px 3px rgba(0,0,0,.25)}
-.header h2{font-weight:600;opacity:.95;font-size:var(--hd-sub)}
-.header-info{
-  width:100%;max-width:1400px;margin:6px auto 0;
-  display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:nowrap;overflow:auto;
-  scrollbar-width:none;
-}
-.header-info::-webkit-scrollbar{display:none}
-.pill{background:rgba(255,255,255,.08);padding:4px 8px;border-radius:14px;backdrop-filter:blur(10px);display:flex;align-items:center;gap:6px;white-space:nowrap}
-.pill input,.pill select{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;padding:4px 6px;border-radius:6px;min-width:70px;font-size:.9rem}
-
-/* OPTIONAL sticky mode (user controlled) */
-body.is-sticky .header{position:sticky;top:0;z-index:50}
-body.is-sticky .header.shrink{padding:6px 8px}
-body.is-sticky .header.shrink h1{font-size:1rem}
-body.is-sticky .header.shrink h2{display:none}
-
-/* ===== Toolbar ===== */
-.toolbar{
-  max-width:1400px;margin:8px auto 0;padding:6px 12px;
-  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-  background:rgba(255,255,255,.65);backdrop-filter:blur(8px);
-  border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.08)
-}
-[data-theme="dark"] .toolbar{background:rgba(16,20,28,.6)}
-.btn{padding:8px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:.18s transform,.18s box-shadow;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.btn-primary{background:var(--wm-blue);color:#fff}.btn-success{background:var(--good);color:#fff}
-.btn-warning{background:var(--warn);color:#000}.btn-danger{background:var(--bad);color:#fff}
-.btn-ghost{background:transparent;border:2px solid rgba(0,0,0,.15);color:inherit}
-[data-theme="dark"] .btn-ghost{border-color:rgba(255,255,255,.25)}
-
-/* ===== Tabs ===== */
-.tabs{display:flex;max-width:1400px;margin:10px auto;padding:4px;background:#f0f2f6;border-radius:10px;gap:4px}
-[data-theme="dark"] .tabs{background:#101522}
-.tab{flex:1;padding:10px 16px;text-align:center;border-radius:8px;cursor:pointer;font-weight:800}
-.tab.active{background:var(--wm-blue);color:#fff;box-shadow:0 2px 8px rgba(0,113,206,.35)}
-.tab-content{display:none}.tab-content.active{display:block}
-
-/* ===== Layout & Sections ===== */
-.wrap{max-width:1400px;margin:0 auto;padding:12px}
-.dashboard-container{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.section{background:var(--card);border-radius:14px;padding:14px;box-shadow:0 8px 25px rgba(0,0,0,.10);transition:.25s transform,.25s box-shadow}
-.section:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.15)}
-.section-header{display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--wm-blue);padding-bottom:6px;margin-bottom:10px}
-.section-header h2{color:var(--wm-blue);font-size:1.1rem}
-.full-width{grid-column:1/-1}
-.right{text-align:right}.muted{color:var(--muted)}
-
-table{width:100%;border-collapse:collapse}
-th{background:#f6f7fb;padding:8px;text-align:left;border-bottom:2px solid #dfe3ea;font-size:.9em}
-td{padding:8px;border-bottom:1px solid #e3e7ef;font-size:.9em}
-tr:hover{background:#f8f9fb}
-.input-field{width:100%;padding:6px 8px;border:2px solid #e9ecef;border-radius:6px;background:transparent;color:inherit}
-.input-field:focus{outline:none;border-color:var(--wm-blue);box-shadow:0 0 0 3px rgba(0,113,206,.15)}
-.checkbox{width:18px;height:18px;accent-color:var(--wm-blue)}
-.status-badge{padding:4px 10px;border-radius:20px;font-size:.8em;font-weight:800;display:inline-block;min-width:84px;text-align:center}
-.status-excellent{background:#d4edda;color:#155724}.status-good{background:#d1ecf1;color:#0c5460}
-.status-warning{background:#fff3cd;color:#856404}.status-danger{background:#f8d7da;color:#721c24}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:8px}
-.kpi-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px;border-radius:12px;text-align:center;position:relative;overflow:hidden}
-.kpi-card::before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.1);transform:translateX(-100%);transition:transform .6s}
-.kpi-card:hover::before{transform:translateX(100%)}
-.kpi-value{font-size:1.6rem;font-weight:800}.kpi-label{font-size:.9rem;opacity:.9}.kpi-target{font-size:.8rem;opacity:.85;margin-top:4px}
-.progress-bar{width:100%;height:18px;background:#e9ecef;border-radius:10px;overflow:hidden;margin:6px 0}
-.progress-fill{height:100%;background:linear-gradient(90deg,#00a651 0%,#4CAF50 100%);transition:width .5s;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8em;font-weight:800}
-
-/* Mobile */
-@media (max-width:900px){
-  .dashboard-container{grid-template-columns:1fr}
-}
-
-/* Print */
-@media print{
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{background:#fff;color:#000}
-  .header{position:static !important;box-shadow:none !important}
-  .tabs,.toolbar,.btn,label[for],input[type=file],#settingsModal{display:none !important}
-  .section{box-shadow:none !important;border:1px solid #ddd}
-}
-@page{size:auto;margin:12mm}
-</style>
+<link rel="stylesheet" href="./styles.css"/>
 </head>
 <body>
-<!-- HEADER (not sticky; can be pinned) -->
-<div class="header" id="hdr">
-  <h1>🏪 WALMART NEIGHBORHOOD MARKET</h1>
-  <h2>Salesfloor Academy Trainer Dashboard — Pro</h2>
-  <div class="header-info">
-    <div class="pill">📅 <span id="current-date"></span></div>
-    <div class="pill">👤 <label for="trainer-name" style="opacity:.85">Trainer:</label> <input id="trainer-name" placeholder="Enter name"/></div>
-    <div class="pill">⏰ <label for="shift-select" style="opacity:.85">Shift:</label> <select id="shift-select"><option>Opening</option><option>Mid</option><option selected>Closing</option></select></div>
-    <div class="pill">🏪 <label for="store-number" style="opacity:.85">Store #:</label> <input id="store-number" placeholder="####" style="width:72px"/></div>
-    <div class="pill">🎯 <label for="target-cph" style="opacity:.85">Target CPH:</label> <input id="target-cph" type="number" min="1" value="45" style="width:80px"/></div>
-    <div class="pill"><button class="btn btn-ghost" id="themeBtn">🌓 Theme</button></div>
+<div class="app-shell">
+  <!-- HEADER (can be pinned) -->
+  <div class="header" id="hdr">
+    <h1>🏪 WALMART NEIGHBORHOOD MARKET</h1>
+    <h2>Salesfloor Academy Trainer Dashboard — Pro</h2>
+    <div class="header-info">
+      <div class="pill">📅 <span id="current-date"></span></div>
+      <div class="pill">👤 <label for="trainer-name">Trainer:</label> <input id="trainer-name" placeholder="Enter name"/></div>
+      <div class="pill">⏰ <label for="shift-select">Shift:</label> <select id="shift-select"><option>Opening</option><option>Mid</option><option selected>Closing</option></select></div>
+      <div class="pill">🏪 <label for="store-number">Store #:</label> <input id="store-number" placeholder="####" style="width:72px"/></div>
+      <div class="pill">🎯 <label for="target-cph">Target CPH:</label> <input id="target-cph" type="number" min="1" value="45" style="width:90px"/></div>
+      <div class="pill"><button class="btn btn-ghost" id="themeBtn" aria-label="Toggle theme">🌓 Theme</button></div>
+    </div>
   </div>
-</div>
 
-<!-- Toolbar -->
-<div class="toolbar">
-  <button class="btn btn-primary" id="saveBtn">💾 Save</button>
-  <button class="btn btn-success" id="loadBtn">📂 Load</button>
-  <button class="btn btn-warning" id="exportBtn">⬇️ Export CSVs</button>
-  <button class="btn btn-danger" id="clearBtn">🧹 Clear</button>
-  <button class="btn" id="printBtn">🖨️ Print / PDF</button>
-  <button class="btn" id="settingsBtn">⚙️ Dept Targets</button>
-  <button class="btn btn-ghost" id="pinHeaderBtn" title="Toggle sticky header">📌 Pin header</button>
-  <label class="btn">📥 Import Roster CSV <input type="file" id="importRoster" accept=".csv" style="display:none"/></label>
-  <label class="btn">📥 Import Overstock CSV <input type="file" id="importOverstock" accept=".csv" style="display:none"/></label>
-  <span class="muted" style="font-size:.9rem">Tip: header does not scroll unless you pin it.</span>
-</div>
+  <!-- Toolbar -->
+  <div class="toolbar-wrap">
+    <div class="toolbar">
+      <button class="btn btn-primary" id="saveBtn">💾 Save</button>
+      <button class="btn btn-success" id="loadBtn">📂 Load</button>
+      <button class="btn btn-warning" id="exportBtn">⬇️ Export CSVs</button>
+      <button class="btn btn-danger" id="clearBtn">🧹 Clear</button>
+      <button class="btn" id="printBtn">🖨️ Print / PDF</button>
+      <button class="btn" id="settingsBtn">⚙️ Dept Targets</button>
+      <button class="btn btn-ghost" id="pinHeaderBtn" title="Toggle sticky header">📌 Pin header</button>
+      <label class="btn">📥 Import Roster CSV <input type="file" id="importRoster" accept=".csv" style="display:none"/></label>
+      <label class="btn">📥 Import Overstock CSV <input type="file" id="importOverstock" accept=".csv" style="display:none"/></label>
+      <span class="muted" style="font-size:.9rem">Tip: header does not scroll unless you pin it.</span>
+    </div>
+  </div>
 
-<!-- Tabs -->
-<div class="tabs">
-  <div class="tab active" data-tab="dashboard">📊 Daily Dashboard</div>
-  <div class="tab" data-tab="coaching">👥 Coaching Tracker</div>
-  <div class="tab" data-tab="reports">📈 Reports</div>
-</div>
+  <!-- Layout -->
+  <div class="content-shell">
+    <aside class="side-nav">
+      <div class="nav-header">
+        <span class="nav-title">Workspace</span>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰ Menu</button>
+      </div>
+      <div class="tabs" id="tabNav">
+        <div class="tab active" data-tab="dashboard">📊 Daily Dashboard</div>
+        <div class="tab" data-tab="coaching">👥 Coaching Tracker</div>
+        <div class="tab" data-tab="reports">📈 Reports</div>
+      </div>
+    </aside>
 
+    <main class="main-area">
 <div class="wrap">
   <!-- DASHBOARD -->
   <div id="dashboard" class="tab-content active">
@@ -148,10 +60,12 @@ tr:hover{background:#f8f9fb}
       <div class="section">
         <div class="section-header"><span>📦</span><h2>Freight Performance Tracker</h2></div>
         <div class="muted" style="margin-bottom:6px">Uses <strong>department targets</strong> if set; otherwise global target (<span id="kpi-target-cph">45</span>).</div>
-        <table id="freight-table">
-          <thead><tr><th>Associate</th><th>Department</th><th>Clock In</th><th>Clock Out</th><th>Cases</th><th>Hours</th><th>Cases/Hr</th><th>Status</th><th class="right">⋯</th></tr></thead>
-          <tbody id="freight-tbody"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="freight-table">
+            <thead><tr><th>Associate</th><th>Department</th><th>Clock In</th><th>Clock Out</th><th>Cases</th><th>Hours</th><th>Cases/Hr</th><th>Status</th><th class="right">⋯</th></tr></thead>
+            <tbody id="freight-tbody"></tbody>
+          </table>
+        </div>
         <div class="right" style="margin-top:6px"><button class="btn btn-primary" onclick="addFreightRow()">＋ Add Row</button></div>
         <div class="kpi-grid">
           <div class="kpi-card"><div class="kpi-value" id="kpi-total-cases">0</div><div class="kpi-label">Total Cases</div></div>
@@ -160,7 +74,7 @@ tr:hover{background:#f8f9fb}
         </div>
         <div class="section" style="margin-top:10px">
           <div class="section-header" style="border-bottom:none"><span>⚙️</span><h2 style="border:0">Department Targets (CPH)</h2></div>
-          <div id="dept-targets" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"></div>
+          <div id="dept-targets" class="modal-grid"></div>
         </div>
         <div class="section" style="margin-top:10px">
           <div class="section-header"><span>📢</span><h2>Team Summary</h2></div>
@@ -170,27 +84,33 @@ tr:hover{background:#f8f9fb}
 
       <div class="section">
         <div class="section-header"><span>🏪</span><h2>Zone Verification Status</h2></div>
-        <table id="zone-table">
-          <thead><tr><th>Zone</th><th>Total Aisles</th><th>Completed</th><th>% Complete</th><th>Status</th></tr></thead>
-          <tbody id="zone-tbody"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="zone-table">
+            <thead><tr><th>Zone</th><th>Total Aisles</th><th>Completed</th><th>% Complete</th><th>Status</th></tr></thead>
+            <tbody id="zone-tbody"></tbody>
+          </table>
+        </div>
         <div class="progress-bar"><div class="progress-fill" id="zone-progress" style="width:0%">0% Complete</div></div>
       </div>
 
       <div class="section full-width">
         <div class="section-header"><span>🥬</span><h2>Fresh Area Tour Schedule</h2></div>
-        <table id="tours-table">
-          <thead><tr><th>Time Slot</th><th>Target Time</th><th>Actual Time</th><th>Produce</th><th>Meat</th><th>Deli</th><th>Bakery</th><th>Dairy</th><th>Frozen</th><th>Temp Check</th><th>Status</th></tr></thead>
-          <tbody id="tours-tbody"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="tours-table">
+            <thead><tr><th>Time Slot</th><th>Target Time</th><th>Actual Time</th><th>Produce</th><th>Meat</th><th>Deli</th><th>Bakery</th><th>Dairy</th><th>Frozen</th><th>Temp Check</th><th>Status</th></tr></thead>
+            <tbody id="tours-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="section">
         <div class="section-header"><span>📋</span><h2>Overstock & Inventory Log</h2></div>
-        <table id="overstock-table">
-          <thead><tr><th>Location</th><th>Item/UPC</th><th>Qty</th><th>Action</th><th>Status</th><th class="right">⋯</th></tr></thead>
-        <tbody id="overstock-tbody"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="overstock-table">
+            <thead><tr><th>Location</th><th>Item/UPC</th><th>Qty</th><th>Action</th><th>Status</th><th class="right">⋯</th></tr></thead>
+            <tbody id="overstock-tbody"></tbody>
+          </table>
+        </div>
         <div class="right" style="margin-top:6px"><button class="btn btn-primary" onclick="addOverstockRow()">＋ Add Item</button></div>
       </div>
 
@@ -198,7 +118,7 @@ tr:hover{background:#f8f9fb}
         <div class="section-header"><span>🗂️</span><h2>Top-Stock A/B Aisles Compliance (30 aisles)</h2></div>
         <div class="muted">Quick pass: A1–A20 (Dry Grocery), B1–B10 (Consumables).</div>
         <div class="progress-bar"><div class="progress-fill" id="topstock-progress" style="width:0%">0% Verified</div></div>
-        <div id="topstock-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:8px"></div>
+        <div id="topstock-grid" class="topstock-grid"></div>
         <div class="right" style="margin-top:6px">
           <button class="btn btn-success" onclick="markTopstockAll(true)">Mark All Verified</button>
           <button class="btn btn-warning" onclick="markTopstockAll(false)">Clear All</button>
@@ -276,16 +196,19 @@ tr:hover{background:#f8f9fb}
       </div>
     </div>
   </div>
+    </div>
+    </main>
+  </div>
 </div>
 
 <!-- Settings Modal -->
-<div id="settingsModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--card);color:var(--text);max-width:640px;width:100%;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div id="settingsModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
       <h3>Department Target Cases/Hr</h3>
       <button class="btn btn-danger" onclick="toggleModal(false)">Close</button>
     </div>
-    <div id="modal-targets" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:6px"></div>
+    <div id="modal-targets" class="modal-grid"></div>
     <div class="right" style="margin-top:10px">
       <button class="btn btn-success" onclick="saveDeptTargets()">Save Targets</button>
     </div>
@@ -311,7 +234,15 @@ function initHeader(){
   const prefs = loadLocal('wm_prefs', {});
   $('#trainer-name').value=prefs.trainer||'';$('#shift-select').value=prefs.shift||'Closing';$('#store-number').value=prefs.store||'';
   $('#target-cph').value=prefs.targetCPH ?? 45; $('#kpi-target-cph').textContent=$('#target-cph').value;
-  if(prefs.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+  function applyTheme(mode){
+    const theme = mode==='dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn=$('#themeBtn'); if(btn) btn.textContent = theme==='dark' ? '🌙 Dark Mode' : '☀️ Light Mode';
+  }
+  const storedTheme = prefs.theme;
+  applyTheme(storedTheme ?? (prefersDark.matches ? 'dark' : 'light'));
+  if(!storedTheme){ prefersDark.addEventListener?.('change', e=>{ const saved=loadLocal('wm_prefs',{}).theme; if(!saved) applyTheme(e.matches?'dark':'light'); }); }
   if(prefs.pinHeader) document.body.classList.add('is-sticky');
   $('#pinHeaderBtn').textContent = document.body.classList.contains('is-sticky') ? '📌 Unpin header' : '📌 Pin header';
   $('#pinHeaderBtn').addEventListener('click',()=>{
@@ -321,8 +252,9 @@ function initHeader(){
   });
   $('#themeBtn').addEventListener('click',()=>{
     const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-    document.documentElement.setAttribute('data-theme',isDark?'':'dark');
-    prefs.theme=isDark?'':'dark'; saveLocal('wm_prefs',prefs)
+    const next=isDark?'light':'dark';
+    applyTheme(next);
+    prefs.theme=next; saveLocal('wm_prefs',prefs)
   });
   ['trainer-name','shift-select','store-number','target-cph'].forEach(id=>$('#'+id).addEventListener('change',()=>{
     const p=loadLocal('wm_prefs',{});
@@ -335,7 +267,17 @@ function initHeader(){
 }
 
 /* ===== Tabs ===== */
-function initTabs(){$$('.tab').forEach(t=>t.addEventListener('click',()=>{$$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const tab=t.getAttribute('data-tab');$$('.tab-content').forEach(c=>c.classList.remove('active'));$('#'+tab).classList.add('active');if(tab==='reports') drawCharts();}))}
+function initTabs(){
+  const navToggle=$('#navToggle');
+  const closeNav=()=>{ document.body.classList.remove('nav-open'); navToggle?.setAttribute('aria-expanded','false'); };
+  navToggle?.addEventListener('click', ()=>{ const open=document.body.classList.toggle('nav-open'); navToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+  $$('.tab').forEach(t=>t.addEventListener('click',()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+    const tab=t.getAttribute('data-tab');$$('.tab-content').forEach(c=>c.classList.remove('active'));$('#'+tab).classList.add('active');
+    closeNav();
+    if(tab==='reports') drawCharts();
+  }));
+}
 
 /* ===== Dept targets ===== */
 function renderDeptTargets(){
@@ -343,17 +285,17 @@ function renderDeptTargets(){
   const wrap = $('#dept-targets'); wrap.innerHTML='';
   departments.forEach(d=>{
     const v = state[d] ?? '';
-    wrap.insertAdjacentHTML('beforeend', `<label style="display:flex;gap:6px;align-items:center"><span style="background:#e9ecef;color:#495057;padding:2px 8px;border-radius:12px;font-size:.75em;font-weight:700">${d}</span><input class="input-field dt" data-dept="${d}" type="number" min="1" placeholder="—" value="${v!==''?v:''}" style="width:90px"/></label>`);
+    wrap.insertAdjacentHTML('beforeend', `<label class="target-row"><span class="target-pill">${d}</span><input class="input-field dt target-input" data-dept="${d}" type="number" min="1" placeholder="—" value="${v!==''?v:''}"/></label>`);
   });
 }
 function toggleModal(show=true){
-  const m=$('#settingsModal'); m.style.display = show ? 'flex' : 'none';
+  const m=$('#settingsModal'); m.classList.toggle('hidden', !show); m.style.display = show ? 'flex' : 'none';
   if(show){
     const box=$('#modal-targets'); box.innerHTML='';
     const current=loadLocal('wm_dept_targets', {});
     departments.forEach(d=>{
       const v=current[d]??'';
-      box.insertAdjacentHTML('beforeend',`<div><div style="background:#e9ecef;color:#495057;padding:2px 8px;border-radius:12px;display:inline-block;font-size:.8rem;font-weight:700">${d}</div><input class="input-field modal-dt" data-dept="${d}" type="number" min="1" placeholder="—" value="${v!==''?v:''}" style="margin-top:6px"/></div>`);
+      box.insertAdjacentHTML('beforeend',`<div class="target-row"><span class="target-pill">${d}</span><input class="input-field modal-dt target-input" data-dept="${d}" type="number" min="1" placeholder="—" value="${v!==''?v:''}"/></div>`);
     });
   }
 }
@@ -479,7 +421,7 @@ function initZones(){
     const completedInput = z.type==='check' ? `<input type="checkbox" class="checkbox zdone" data-total="${z.total}"/>`
       : `<input type="number" class="input-field zcount" min="0" max="${z.total}" value="0" data-total="${z.total}"/>`;
     tb.insertAdjacentHTML('beforeend', `<tr>
-      <td><span style="background:#e9ecef;color:#495057;padding:2px 8px;border-radius:12px;font-size:.75em;font-weight:700">${z.name}</span></td>
+      <td><span class="target-pill">${z.name}</span></td>
       <td>${z.total}</td><td>${completedInput}</td><td class="zone-percent">0%</td>
       <td class="zone-status"><span class="status-badge status-danger">❌ Incomplete</span></td></tr>`);
   });
@@ -606,17 +548,17 @@ const topB = Array.from({length:10}, (_,i)=>`B${i+1}`);
 function initTopstock(){
   const grid=$('#topstock-grid'); grid.innerHTML='';
   const makeCard=(id)=>`
-    <div style="border:1px solid #dfe3ea;border-radius:10px;padding:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
+    <div class="topstock-card">
+      <div class="topstock-head">
         <strong>${id}</strong>
-        <select class="input-field ts-status" data-id="${id}" style="width:120px">
+        <select class="input-field ts-status target-input" data-id="${id}">
           <option value="Verified">Verified</option>
           <option value="Needs Work">Needs Work</option>
           <option value="Blocked">Blocked</option>
         </select>
       </div>
-      <div style="margin-top:6px"><label><input type="checkbox" class="checkbox ts-check" data-id="${id}"/> Verified</label></div>
-      <input class="input-field ts-notes" data-id="${id}" placeholder="Notes (bins, modular, safety, etc.)" style="margin-top:6px"/>
+      <div class="target-row topstock-row"><label><input type="checkbox" class="checkbox ts-check" data-id="${id}"/> Verified</label></div>
+      <input class="input-field ts-notes" data-id="${id}" placeholder="Notes (bins, modular, safety, etc.)"/>
     </div>`;
   [...topA,...topB].forEach(id=>grid.insertAdjacentHTML('beforeend', makeCard(id)));
   $$('.ts-check').forEach(c=>c.onchange=updateTopstockProgress);
