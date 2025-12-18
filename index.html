@@ -19,8 +19,8 @@
       <div class="header-actions">
         <div class="pill compact-pill">📅 <span id="current-date"></span></div>
         <div class="pill" id="health-pill" aria-live="polite">Health: <strong id="health-score">--</strong></div>
-        <button class="btn btn-ghost pill-btn" id="themeBtn" aria-label="Toggle theme">🌓 Theme</button>
-        <button class="btn btn-primary" id="openExports">⬇️ Exports</button>
+        <button class="btn btn-ghost pill-btn" id="themeBtn" aria-label="Toggle theme" data-action="theme">🌓 Theme</button>
+        <button class="btn btn-primary" id="openExports" data-action="exports">⬇️ Exports</button>
       </div>
     </div>
     <div class="header-bottom">
@@ -42,15 +42,24 @@
   <!-- Toolbar -->
   <div class="toolbar-wrap">
     <div class="toolbar">
-      <button class="btn btn-primary" id="saveBtn">💾 Save</button>
-      <button class="btn btn-success" id="loadBtn">📂 Load</button>
+      <button class="btn btn-primary" id="saveBtn" data-action="save">💾 Save</button>
+      <button class="btn btn-success" id="loadBtn" data-action="load">📂 Load</button>
       <button class="btn btn-warning" id="exportBtn">⬇️ Export CSVs</button>
       <button class="btn btn-danger" id="clearBtn">🧹 Clear</button>
-      <button class="btn" id="printBtn">🖨️ Print / PDF</button>
-      <button class="btn" id="settingsBtn">⚙️ Dept Targets</button>
+      <button class="btn" id="printBtn" data-action="print">🖨️ Print / PDF</button>
+      <button class="btn" id="settingsBtn" data-action="dept-targets">⚙️ Dept Targets</button>
       <label class="btn">📥 Import Roster CSV <input type="file" id="importRoster" accept=".csv" style="display:none"/></label>
       <label class="btn">📥 Import Overstock CSV <input type="file" id="importOverstock" accept=".csv" style="display:none"/></label>
-      <div class="pill compact-pill help-pill" id="openHelp" role="button" tabindex="0">❓ Shortcuts</div>
+      <div class="pill compact-pill help-pill" id="openHelp" role="button" tabindex="0" data-action="shortcuts">❓ Shortcuts</div>
+    </div>
+    <div class="toolbar secondary-toolbar">
+      <button class="btn" data-action="shift-roster">Shift Roster</button>
+      <button class="btn" data-action="closing-trainer">Closing Trainer</button>
+      <button class="btn" data-action="freight-lead">Freight Lead</button>
+      <button class="btn" data-action="zoning-lead">Zoning Lead</button>
+      <button class="btn" data-action="runner-utility">Runner/Utility</button>
+      <button class="btn" data-action="calendar">Calendar</button>
+      <button class="btn" data-action="health">Health</button>
     </div>
   </div>
 
@@ -322,6 +331,14 @@
       <li><strong>C</strong> — Open Coaching</li>
       <li><strong>/</strong> — Focus search (roster)</li>
     </ul>
+  </div>
+</div>
+
+<!-- Generic Feature Modal -->
+<div id="featureModal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="featureTitle">
+    <div class="modal-header"><h3 id="featureTitle">Feature</h3><button class="btn btn-danger" id="closeFeature">Close</button></div>
+    <div id="featureBody" class="feature-modal-body">Details coming soon.</div>
   </div>
 </div>
 
@@ -1157,11 +1174,57 @@ function initClickActions(){
   document.querySelector('[data-jump="#coaching-embedded"]')?.addEventListener('click',()=>document.querySelector('#coaching-embedded')?.scrollIntoView({behavior:'smooth'}));
 }
 
+function featureHighlight(el){
+  if(!el) return;
+  el.classList.add('feature-highlight');
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.focus?.();
+  setTimeout(()=>el.classList.remove('feature-highlight'), 1500);
+}
+
+function openFeatureModal(title, body){
+  const modal=$('#featureModal');
+  if(!modal) return;
+  $('#featureTitle').textContent=title;
+  $('#featureBody').textContent=body;
+  modal.classList.remove('hidden');
+  $('#closeFeature')?.focus();
+}
+
+function initToolbarActions(){
+  const actions={
+    'shift-roster':()=>{ const el=$('#rosterInput'); featureHighlight(el); toast('Add teammates to the roster'); },
+    'closing-trainer':()=>{ const el=document.querySelector('[data-role="closing"]'); featureHighlight(el); toast('Assign a Closing Trainer'); },
+    'freight-lead':()=>{ const el=document.querySelector('[data-role="freight"]'); featureHighlight(el); toast('Assign a Freight Lead'); },
+    'zoning-lead':()=>{ const el=document.querySelector('[data-role="zoning"]'); featureHighlight(el); toast('Assign a Zoning Lead'); },
+    'runner-utility':()=>{ const el=document.querySelector('[data-role="runner"]'); featureHighlight(el); toast('Assign a Runner/Utility'); },
+    'calendar':()=>{ featureHighlight($('#shiftTimeline')); openFeatureModal('Calendar','Timeline markers visualize your shift. More calendar tools coming soon.'); },
+    'health':()=>{ $('#healthInfoModal')?.classList.remove('hidden'); $('#closeHealthInfo')?.focus(); },
+    'theme':()=>{ $('#themeBtn')?.click(); },
+    'exports':()=>{ $('#openExports')?.click(); },
+    'load':()=>{ $('#loadBtn')?.click(); },
+    'save':()=>{ $('#saveBtn')?.click(); },
+    'print':()=>{ $('#printBtn')?.click(); },
+    'dept-targets':()=>{ $('#settingsBtn')?.click(); },
+    'shortcuts':()=>{ $('#openHelp')?.dispatchEvent(new Event('click', {bubbles:true})); }
+  };
+  const bind=(el)=>{
+    const action=el.dataset.action;
+    const handler=actions[action];
+    if(!handler) return;
+    const run=(e)=>{ e?.preventDefault?.(); handler(); };
+    el.addEventListener('click', run);
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); run(); } });
+  };
+  $$('[data-action]').forEach(bind);
+  $('#closeFeature')?.addEventListener('click',()=>$('#featureModal')?.classList.add('hidden'));
+}
+
 /* ===== Init ===== */
 function init(){
   initHeader(); initTabs(); renderDeptTargets(); renderRoster(); addFreightRow(); addFreightRow(); addFreightRow(); recalcFreight(); initZones(); initTours(); initStorageButtons(); initTopstock(); renderCoachingList(); initClickActions();
   setupBulk('#freight-tbody','#freight-bulk'); setupBulk('#zone-tbody','#zones-bulk'); setupBulk('#overstock-tbody','#overstock-bulk');
-  initShortcuts(); initNavHighlight(); initSwipeables(); initFab();
+  initToolbarActions(); initShortcuts(); initNavHighlight(); initSwipeables(); initFab();
   const state=loadLocal('wm_dashboard_state', null); if(state) restore(state);
   updateCountdowns(); updateInsights(); updateHealth(); renderTimeline();
   setInterval(updateCountdowns,30000);
