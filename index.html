@@ -8,17 +8,34 @@
 </head>
 <body>
 <div class="app-shell">
-  <!-- HEADER (can be pinned) -->
-  <div class="header" id="hdr">
+  <!-- HEADER (sticky command bar) -->
+  <div class="header sticky" id="hdr">
     <div class="header-top">
       <div class="title-wrap">
         <h1>🏪 Walmart Neighborhood Market</h1>
         <p class="subtitle">Salesfloor Academy Trainer Dashboard — Pro</p>
+        <div class="muted mini-clock" id="live-clock">--:--</div>
       </div>
       <div class="header-actions">
         <div class="pill compact-pill">📅 <span id="current-date"></span></div>
+        <div class="pill" id="health-pill" aria-live="polite">Health: <strong id="health-score">--</strong></div>
         <button class="btn btn-ghost pill-btn" id="themeBtn" aria-label="Toggle theme">🌓 Theme</button>
+        <button class="btn btn-primary" id="openExports">⬇️ Exports</button>
       </div>
+    </div>
+    <div class="header-bottom">
+      <div class="pill roster-pill">
+        <label for="rosterInput">Shift Roster</label>
+        <input id="rosterInput" placeholder="Add name and press Enter"/>
+      </div>
+      <div class="roles" id="shiftRoles">
+        <div class="role-item"><label>Closing Trainer</label><select class="input-field role-select" data-role="closing"></select></div>
+        <div class="role-item"><label>Freight Lead</label><select class="input-field role-select" data-role="freight"></select></div>
+        <div class="role-item"><label>Zoning Lead</label><select class="input-field role-select" data-role="zoning"></select></div>
+        <div class="role-item"><label>Fresh Lead</label><select class="input-field role-select" data-role="fresh"></select></div>
+        <div class="role-item"><label>Runner / Utility</label><select class="input-field role-select" data-role="runner"></select></div>
+      </div>
+      <div class="timeline" id="shiftTimeline" aria-label="Shift timeline"></div>
     </div>
   </div>
 
@@ -33,6 +50,7 @@
       <button class="btn" id="settingsBtn">⚙️ Dept Targets</button>
       <label class="btn">📥 Import Roster CSV <input type="file" id="importRoster" accept=".csv" style="display:none"/></label>
       <label class="btn">📥 Import Overstock CSV <input type="file" id="importOverstock" accept=".csv" style="display:none"/></label>
+      <div class="pill compact-pill help-pill" id="openHelp" role="button" tabindex="0">❓ Shortcuts</div>
     </div>
   </div>
 
@@ -48,122 +66,184 @@
         <div class="tab" data-tab="coaching" role="tab" tabindex="0" aria-selected="false">👥 Coaching Tracker</div>
         <div class="tab" data-tab="reports" role="tab" tabindex="0" aria-selected="false">📈 Reports</div>
       </div>
+      <nav class="quick-links" aria-label="Quick section links">
+        <a href="#freight" class="quick-link">📦 Freight</a>
+        <a href="#team-summary" class="quick-link">👥 Team Summary</a>
+        <a href="#zones" class="quick-link">🏪 Zones</a>
+        <a href="#fresh" class="quick-link">🥬 Fresh Tours</a>
+        <a href="#topstock" class="quick-link">🗂️ Top-Stock</a>
+        <a href="#overstock" class="quick-link">📋 Overstock</a>
+        <a href="#coaching" class="quick-link">📝 Coaching</a>
+      </nav>
     </aside>
 
     <main class="main-area">
 <div class="wrap">
   <!-- DASHBOARD -->
   <div id="dashboard" class="tab-content active">
-    <div class="dashboard-container">
-      <div class="section">
-        <div class="section-header"><span>📦</span><h2>Freight Performance Tracker</h2></div>
-        <div class="muted" style="margin-bottom:6px">Uses <strong>department targets</strong> if set; otherwise global target (<span id="kpi-target-cph">45</span>).</div>
-        <div class="table-scroll">
-          <table id="freight-table">
-            <thead><tr><th>Associate</th><th>Department</th><th>Clock In</th><th>Clock Out</th><th>Cases</th><th>Hours</th><th>Cases/Hr</th><th>Status</th><th class="right">⋯</th></tr></thead>
-            <tbody id="freight-tbody"></tbody>
-          </table>
+    <details class="group live" data-group="live" open>
+      <summary>Live Operations <span class="group-status" id="group-live-status">Monitoring…</span></summary>
+      <div class="dashboard-container">
+        <div class="section" id="freight">
+          <div class="section-header"><span>📦</span><h2>Freight Performance Tracker</h2><div class="module-status" id="status-freight"></div></div>
+          <div class="insight" id="insight-freight">Insights load here.</div>
+          <div class="muted" style="margin-bottom:6px">Uses <strong>department targets</strong> if set; otherwise global target (<span id="kpi-target-cph">45</span>).</div>
+          <div class="table-scroll">
+            <table id="freight-table">
+              <thead><tr><th>Select</th><th>Associate</th><th>Department</th><th>Clock In</th><th>Clock Out</th><th>Cases</th><th>Hours</th><th>Cases/Hr</th><th>Assigned</th><th>Status</th><th class="right">⋯</th></tr></thead>
+              <tbody id="freight-tbody"></tbody>
+            </table>
+          </div>
+          <div class="bulk-toolbar hidden" id="freight-bulk">
+            <span>Bulk:</span>
+            <button class="btn btn-success" data-bulk="assign-freight">Assign To</button>
+            <button class="btn btn-primary" data-bulk="clockin">Clock In Now</button>
+          </div>
+          <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addFreightBtn">＋ Add Row</button></div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-value" id="kpi-total-cases">0</div><div class="kpi-label">Total Cases</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpi-total-hours">0.0</div><div class="kpi-label">Total Hours</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpi-avg-cph">0.0</div><div class="kpi-label">Avg Cases/Hr</div></div>
+          </div>
+          <div class="section" style="margin-top:10px">
+            <div class="section-header" style="border-bottom:none"><span>⚙️</span><h2 style="border:0">Department Targets (CPH)</h2></div>
+            <div id="dept-targets" class="modal-grid"></div>
+          </div>
+          <div class="section" style="margin-top:10px" id="team-summary-card">
+            <div class="section-header"><span>📢</span><h2>Team Summary</h2></div>
+            <div class="muted" id="team-summary" style="padding:6px 0">Enter data to see team performance</div>
+          </div>
         </div>
-        <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addFreightBtn">＋ Add Row</button></div>
-        <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-value" id="kpi-total-cases">0</div><div class="kpi-label">Total Cases</div></div>
-          <div class="kpi-card"><div class="kpi-value" id="kpi-total-hours">0.0</div><div class="kpi-label">Total Hours</div></div>
-          <div class="kpi-card"><div class="kpi-value" id="kpi-avg-cph">0.0</div><div class="kpi-label">Avg Cases/Hr</div></div>
-        </div>
-        <div class="section" style="margin-top:10px">
-          <div class="section-header" style="border-bottom:none"><span>⚙️</span><h2 style="border:0">Department Targets (CPH)</h2></div>
-          <div id="dept-targets" class="modal-grid"></div>
-        </div>
-        <div class="section" style="margin-top:10px">
-          <div class="section-header"><span>📢</span><h2>Team Summary</h2></div>
-          <div class="muted" id="team-summary" style="padding:6px 0">Enter data to see team performance</div>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="section-header"><span>🏪</span><h2>Zone Verification Status</h2></div>
-        <div class="table-scroll">
-          <table id="zone-table">
-            <thead><tr><th>Zone</th><th>Total Aisles</th><th>Completed</th><th>% Complete</th><th>Status</th></tr></thead>
-            <tbody id="zone-tbody"></tbody>
-          </table>
+        <div class="section" id="zones">
+          <div class="section-header"><span>🏪</span><h2>Zone Verification Status</h2><div class="module-status" id="status-zones"></div></div>
+          <div class="insight" id="insight-zones">Insights load here.</div>
+          <div class="table-scroll">
+            <table id="zone-table">
+              <thead><tr><th>Select</th><th>Zone</th><th>Total Aisles</th><th>Completed</th><th>% Complete</th><th>Assigned To</th><th>Status</th><th>History</th></tr></thead>
+              <tbody id="zone-tbody"></tbody>
+            </table>
+          </div>
+          <div class="bulk-toolbar hidden" id="zones-bulk">
+            <span>Bulk:</span>
+            <button class="btn btn-success" data-bulk="zone-complete">Mark Verified</button>
+            <button class="btn btn-primary" data-bulk="zone-assign">Assign To</button>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="zone-progress" style="width:0%">0% Complete</div></div>
         </div>
-        <div class="progress-bar"><div class="progress-fill" id="zone-progress" style="width:0%">0% Complete</div></div>
-      </div>
 
-      <div class="section full-width">
-        <div class="section-header"><span>🥬</span><h2>Fresh Area Tour Schedule</h2></div>
-        <div class="table-scroll">
-          <table id="tours-table">
-            <thead><tr><th>Time Slot</th><th>Target Time</th><th>Actual Time</th><th>Produce</th><th>Meat</th><th>Deli</th><th>Bakery</th><th>Dairy</th><th>Frozen</th><th>Temp Check</th><th>Status</th></tr></thead>
-            <tbody id="tours-tbody"></tbody>
-          </table>
+        <div class="section full-width" id="fresh">
+          <div class="section-header"><span>🥬</span><h2>Fresh Area Tour Schedule</h2><div class="module-status" id="status-fresh"></div></div>
+          <div class="insight" id="insight-fresh">Insights load here.</div>
+          <div class="table-scroll">
+            <table id="tours-table">
+              <thead><tr><th>Select</th><th>Time Slot</th><th>Target Time</th><th>Actual Time</th><th>Assigned</th><th>Countdown</th><th>Produce</th><th>Meat</th><th>Deli</th><th>Bakery</th><th>Dairy</th><th>Frozen</th><th>Temp Check</th><th>Status</th><th>History</th></tr></thead>
+              <tbody id="tours-tbody"></tbody>
+            </table>
+          </div>
+          <div class="right" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn" id="markFreshComplete">Mark All Fresh Areas Complete</button>
+            <button class="btn btn-warning" id="clockInFresh">Clock In Now</button>
+          </div>
         </div>
       </div>
+    </details>
 
-      <div class="section">
-        <div class="section-header"><span>📋</span><h2>Overstock & Inventory Log</h2></div>
-        <div class="table-scroll">
-          <table id="overstock-table">
-            <thead><tr><th>Location</th><th>Item/UPC</th><th>Qty</th><th>Action</th><th>Status</th><th class="right">⋯</th></tr></thead>
-            <tbody id="overstock-tbody"></tbody>
-          </table>
+    <details class="group compliance" data-group="compliance">
+      <summary>Compliance &amp; Prevention <span class="group-status" id="group-compliance-status">Monitoring…</span></summary>
+      <div class="dashboard-container">
+        <div class="section" id="topstock">
+          <div class="section-header"><span>🗂️</span><h2>Top-Stock A/B Aisles Compliance (30 aisles)</h2><div class="module-status" id="status-topstock"></div></div>
+          <div class="insight" id="insight-topstock">Insights load here.</div>
+          <div class="muted">Quick pass: A1–A20 (Dry Grocery), B1–B10 (Consumables).</div>
+          <div class="progress-bar"><div class="progress-fill" id="topstock-progress" style="width:0%">0% Verified</div></div>
+          <div id="topstock-grid" class="topstock-grid"></div>
+          <div class="right" style="margin-top:6px">
+            <button class="btn btn-success" id="markTopstockAll">Mark All Verified</button>
+            <button class="btn btn-warning" id="clearTopstockAll">Clear All</button>
+            <button class="btn btn-primary" id="exportTopstock">Export Top-Stock CSV</button>
+          </div>
         </div>
-        <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addOverstockBtn">＋ Add Item</button></div>
-      </div>
 
-      <div class="section full-width">
-        <div class="section-header"><span>🗂️</span><h2>Top-Stock A/B Aisles Compliance (30 aisles)</h2></div>
-        <div class="muted">Quick pass: A1–A20 (Dry Grocery), B1–B10 (Consumables).</div>
-        <div class="progress-bar"><div class="progress-fill" id="topstock-progress" style="width:0%">0% Verified</div></div>
-        <div id="topstock-grid" class="topstock-grid"></div>
-        <div class="right" style="margin-top:6px">
-          <button class="btn btn-success" id="markTopstockAll">Mark All Verified</button>
-          <button class="btn btn-warning" id="clearTopstockAll">Clear All</button>
-          <button class="btn btn-primary" id="exportTopstock">Export Top-Stock CSV</button>
+        <div class="section" id="overstock">
+          <div class="section-header"><span>📋</span><h2>Overstock & Inventory Log</h2><div class="module-status" id="status-overstock"></div></div>
+          <div class="insight" id="insight-overstock">Insights load here.</div>
+          <div class="table-scroll">
+            <table id="overstock-table">
+              <thead><tr><th>Select</th><th>Location</th><th>Item/UPC</th><th>Qty</th><th>Action</th><th>Assigned</th><th>Status</th><th class="right">⋯</th></tr></thead>
+              <tbody id="overstock-tbody"></tbody>
+            </table>
+          </div>
+          <div class="bulk-toolbar hidden" id="overstock-bulk">
+            <span>Bulk:</span>
+            <button class="btn btn-success" data-bulk="overstock-complete">Resolve</button>
+            <button class="btn btn-primary" data-bulk="overstock-assign">Assign To</button>
+          </div>
+          <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addOverstockBtn">＋ Add Item</button></div>
         </div>
       </div>
-    </div>
+    </details>
+
+    <details class="group people" data-group="people">
+      <summary>People &amp; Development <span class="group-status" id="group-people-status">Monitoring…</span></summary>
+      <div class="dashboard-container" style="grid-template-columns:1fr 1fr;">
+        <div class="section coaching-form" id="coaching-embedded">
+          <div class="section-header"><span>📝</span><h2>Coaching Tracker</h2><div class="module-status" id="status-coaching"></div></div>
+          <div class="insight" id="insight-coaching">Insights load here.</div>
+          <!-- form duplicated below for tab reuse -->
+          <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+            <div class="form-group"><label>Associate Name</label><input class="input-field" id="coach-assoc" placeholder="Full name"/></div>
+            <div class="form-group"><label>Department</label>
+              <select class="input-field" id="coach-dept">
+                <option>Dry Grocery</option><option>Consumables</option><option>Produce</option>
+                <option>Meat</option><option>Deli/Bakery</option><option>Dairy</option><option>Frozen</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+            <div class="form-group">
+              <label>Issues</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0">
+                <label><input type="checkbox" class="checkbox coach-issue" value="Attendance"/> Attendance</label>
+                <label><input type="checkbox" class="checkbox coach-issue" value="Productivity"/> Productivity</label>
+                <label><input type="checkbox" class="checkbox coach-issue" value="Zoning"/> Zoning</label>
+                <label><input type="checkbox" class="checkbox coach-issue" value="Backroom/Top-Stock"/> Backroom/Top-Stock</label>
+                <label><input type="checkbox" class="checkbox coach-issue" value="Fresh Area Compliance"/> Fresh Area Compliance</label>
+                <label><input type="checkbox" class="checkbox coach-issue" value="Other"/> Other</label>
+              </div>
+            </div>
+            <div class="form-group"><label>Follow-up Date</label><input class="input-field" type="date" id="coach-follow"/></div>
+          </div>
+          <div class="form-group"><label>Goals</label><textarea class="input-field" id="coach-goals" rows="3" placeholder="Specific, measurable goals..."></textarea></div>
+          <div class="form-group"><label>Notes</label><textarea class="input-field" id="coach-notes" rows="3" placeholder="Observations, expectations, support..."></textarea></div>
+          <div class="right">
+            <button class="btn btn-success" id="saveCoachingBtn">Save Entry</button>
+            <button class="btn btn-primary" id="exportCoachingBtn">Export CSV</button>
+            <button class="btn btn-warning" id="clearCoachingBtn">Clear Saved</button>
+          </div>
+          <div class="section" style="margin-top:10px">
+            <div class="section-header" style="border-bottom:none"><span>📦</span><h2 style="border:0">Saved Items</h2></div>
+            <div id="coaching-list" style="margin-top:6px"></div>
+          </div>
+        </div>
+        <div class="section" id="saved-items">
+          <div class="section-header"><span>💾</span><h2>Saved Items & History</h2></div>
+          <div class="history-block" id="history-feed">No history yet.</div>
+        </div>
+      </div>
+    </details>
   </div>
 
   <!-- COACHING -->
   <div id="coaching" class="tab-content">
     <div class="dashboard-container" style="grid-template-columns:1fr;">
-      <div class="section coaching-form">
+      <div class="section coaching-form proxy">
         <div class="section-header"><span>📝</span><h2>Coaching Tracker</h2></div>
-        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-          <div class="form-group"><label>Associate Name</label><input class="input-field" id="coach-assoc" placeholder="Full name"/></div>
-          <div class="form-group"><label>Department</label>
-            <select class="input-field" id="coach-dept">
-              <option>Dry Grocery</option><option>Consumables</option><option>Produce</option>
-              <option>Meat</option><option>Deli/Bakery</option><option>Dairy</option><option>Frozen</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-          <div class="form-group">
-            <label>Issues</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0">
-              <label><input type="checkbox" class="checkbox coach-issue" value="Attendance"/> Attendance</label>
-              <label><input type="checkbox" class="checkbox coach-issue" value="Productivity"/> Productivity</label>
-              <label><input type="checkbox" class="checkbox coach-issue" value="Zoning"/> Zoning</label>
-              <label><input type="checkbox" class="checkbox coach-issue" value="Backroom/Top-Stock"/> Backroom/Top-Stock</label>
-              <label><input type="checkbox" class="checkbox coach-issue" value="Fresh Area Compliance"/> Fresh Area Compliance</label>
-              <label><input type="checkbox" class="checkbox coach-issue" value="Other"/> Other</label>
-            </div>
-          </div>
-          <div class="form-group"><label>Follow-up Date</label><input class="input-field" type="date" id="coach-follow"/></div>
-        </div>
-        <div class="form-group"><label>Goals</label><textarea class="input-field" id="coach-goals" rows="3" placeholder="Specific, measurable goals..."></textarea></div>
-        <div class="form-group"><label>Notes</label><textarea class="input-field" id="coach-notes" rows="3" placeholder="Observations, expectations, support..."></textarea></div>
-        <div class="right">
-          <button class="btn btn-success" id="saveCoachingBtn">Save Entry</button>
-          <button class="btn btn-primary" id="exportCoachingBtn">Export CSV</button>
-          <button class="btn btn-warning" id="clearCoachingBtn">Clear Saved</button>
-        </div>
+        <p class="muted">Coaching lives inside <strong>People &amp; Development</strong>. Use the main dashboard card to add entries.</p>
+        <div class="right"><button class="btn btn-primary" data-jump="#coaching-embedded">Go to Coaching</button></div>
         <div class="section" style="margin-top:10px">
           <div class="section-header" style="border-bottom:none"><span>📦</span><h2 style="border:0">Saved Items</h2></div>
-          <div id="coaching-list" style="margin-top:6px"></div>
+          <div class="coaching-list-proxy" style="margin-top:6px"></div>
         </div>
       </div>
     </div>
@@ -214,6 +294,72 @@
   </div>
 </div>
 
+<!-- Exports Modal -->
+<div id="exportsModal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header"><h3>Unified Exports</h3><button class="btn btn-danger" id="closeExports">Close</button></div>
+    <div class="modal-grid">
+      <button class="btn btn-primary quick-export" data-export="freight">Export Freight</button>
+      <button class="btn btn-primary quick-export" data-export="overstock">Export Overstock</button>
+      <button class="btn btn-primary" id="exportZonesModal">Export Zones</button>
+      <button class="btn btn-primary" id="exportToursModal">Export Fresh Tours</button>
+      <button class="btn btn-primary" id="exportTopstockModal">Export Top-Stock</button>
+      <button class="btn btn-primary" id="exportCoachingModal">Export Coaching</button>
+      <button class="btn btn-success" id="exportShiftReport">Export Shift Report</button>
+    </div>
+    <p class="muted" style="margin-top:10px">Exports also capture a history snapshot for trends and recurring issues.</p>
+  </div>
+</div>
+
+<!-- Help / Shortcuts Modal -->
+<div id="helpModal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header"><h3>Keyboard Shortcuts</h3><button class="btn btn-danger" id="closeHelp">Close</button></div>
+    <ul class="shortcut-list">
+      <li><strong>F</strong> — Add Freight Row</li>
+      <li><strong>Z</strong> — Jump to Zones</li>
+      <li><strong>T</strong> — Jump to Top-Stock</li>
+      <li><strong>C</strong> — Open Coaching</li>
+      <li><strong>/</strong> — Focus search (roster)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div id="historyModal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal large">
+    <div class="modal-header"><h3>History</h3><button class="btn btn-danger" id="closeHistory">Close</button></div>
+    <div class="filters" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <input class="input-field" type="date" id="historyStart"/>
+      <input class="input-field" type="date" id="historyEnd"/>
+      <select class="input-field" id="historyStatus">
+        <option value="">Any status</option>
+        <option>Complete</option>
+        <option>On Track</option>
+        <option>Needs Work</option>
+        <option>Pending</option>
+      </select>
+    </div>
+    <div id="historyBody" class="history-body">No history yet.</div>
+  </div>
+</div>
+
+<!-- Health score explainer -->
+<div id="healthInfoModal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header"><h3>Shift Health Score</h3><button class="btn btn-danger" id="closeHealthInfo">Close</button></div>
+    <p>Health = Freight (35%) + Zone Completion (25%) + Fresh Compliance (25%) + Top-Stock Verification (15%). Scores update automatically.</p>
+  </div>
+</div>
+
+<!-- Floating quick actions -->
+<div class="fab" id="fab" title="Quick add">＋</div>
+<div id="fabSheet" class="action-sheet hidden">
+  <button class="btn btn-primary" data-quick="freight">Add Freight Row</button>
+  <button class="btn btn-primary" data-quick="coaching">Add Coaching Entry</button>
+  <button class="btn btn-primary" data-quick="overstock">Add Overstock Item</button>
+</div>
+
 <script>
 /* ===== Utilities ===== */
 const $=(q,ctx=document)=>ctx.querySelector(q);const $$=(q,ctx=document)=>Array.from(ctx.querySelectorAll(q));
@@ -226,6 +372,35 @@ function download(filename,text){const a=document.createElement('a');a.href=URL.
 function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 14px;border-radius:8px;z-index:9999;font:600 14px system-ui,Segoe UI,sans-serif;';document.body.appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition="opacity .3s"},1200);setTimeout(()=>t.remove(),1600)}
 function logAction(action,msg){console.log(`[Dashboard] ${action}`); if(msg) toast(msg);}
 const DEFAULT_TARGET_CPH = 45;
+const rosterKey='wm_roster';
+const rolesKey='wm_roles';
+const historyKey='wm_history';
+
+/* ===== Roster & Roles ===== */
+function renderRoster(){
+  const roster=loadLocal(rosterKey,['Alex','Jordan','Taylor']);
+  const input=$('#rosterInput');
+  if(input){
+    input.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(input.value.trim()){ roster.push(input.value.trim()); saveLocal(rosterKey,roster); input.value=''; renderRoster(); toast('Added to roster'); } } };
+    input.placeholder = roster.length? 'Add name and press Enter' : 'Add first name';
+  }
+  updateAssignOptions();
+  $$('.assign-select').forEach(sel=>{
+    const current=sel.value;
+    sel.innerHTML = `<option value="">Unassigned</option><option value="me">Assign to me</option>` + roster.map(n=>`<option value="${n}">${n}</option>`).join('');
+    if(current) sel.value=current;
+  });
+  const roleState=loadLocal(rolesKey,{});
+  $$('.role-select').forEach(sel=>{ const curr=roleState[sel.dataset.role]||''; sel.innerHTML=`<option value="">Unassigned</option>`+roster.map(n=>`<option>${n}</option>`).join(''); sel.value=curr; sel.onchange=()=>{ roleState[sel.dataset.role]=sel.value; saveLocal(rolesKey, roleState); updateInsights(); renderTimeline(); }; });
+}
+function updateAssignOptions(){
+  const roster=loadLocal(rosterKey,['Alex','Jordan','Taylor']);
+  $$('.assign-select').forEach(sel=>{
+    const current=sel.value;
+    sel.innerHTML = `<option value="">Unassigned</option><option value="me">Assign to me</option>` + roster.map(n=>`<option value="${n}">${n}</option>`).join('');
+    if(current) sel.value=current;
+  });
+}
 
 /* ===== Header / Theme / Pin ===== */
 const departments=['Dry Grocery','Consumables','Dairy','Frozen','Produce','Meat','Deli/Bakery'];
@@ -308,7 +483,8 @@ function saveDeptTargets(){
 
 /* ===== Freight ===== */
 function freightRowTemplate(){
-  return `<tr>
+  return `<tr class="swipeable">
+    <td><input type="checkbox" class="row-select freight-select"/></td>
     <td><input class="input-field assoc" placeholder="Associate Name"/></td>
     <td><select class="input-field dept">${departments.map(d=>`<option>${d}</option>`).join('')}</select></td>
     <td><input type="time" class="input-field cin"/></td>
@@ -316,6 +492,7 @@ function freightRowTemplate(){
     <td><input type="number" min="0" class="input-field cases" placeholder="0"/></td>
     <td class="hours-cell">0.0</td>
     <td class="caseshr-cell">0.0</td>
+    <td><select class="input-field assign-select freight-assign"></select></td>
     <td class="status-cell"><span class="status-badge">Pending</span></td>
     <td class="right"><button class="btn btn-danger btn-sm delete-row" type="button">✖</button></td>
   </tr>`;
@@ -324,6 +501,7 @@ function addFreightRow(showFeedback=true){
   $('#freight-tbody').insertAdjacentHTML('beforeend', freightRowTemplate());
   const row=$('#freight-tbody').lastElementChild;
   hookFreightInputs(row);
+  updateAssignOptions();
   if(showFeedback) logAction('Add freight row','Added freight row');
 }
 function hookFreightInputs(scope){
@@ -351,6 +529,7 @@ function badgeForCPH(cph, dept){
 }
 function recalcFreight(){
   const rows=[...$('#freight-tbody').rows]; let totalCases=0,totalHours=0, good=0;
+  const deptTargets = loadLocal('wm_dept_targets', {});
   rows.forEach(r=>{
     const dept=$('.dept',r).value;
     const cases=Number($('.cases',r).value)||0;
@@ -361,13 +540,14 @@ function recalcFreight(){
     $('.caseshr-cell',r).textContent=fmt(cph);
     const [cls,label]=badgeForCPH(cph, dept);
     $('.status-cell',r).innerHTML=`<span class="${cls}">${label}</span>`;
-    const deptTargets = loadLocal('wm_dept_targets', {});
     const target = Number(deptTargets[dept]) || DEFAULT_TARGET_CPH;
     if(cph >= target) good++;
   });
   const teamCPH = totalHours>0? totalCases/totalHours : 0;
   $('#kpi-total-cases').textContent=totalCases; $('#kpi-total-hours').textContent=fmt(totalHours); $('#kpi-avg-cph').textContent=fmt(teamCPH);
   $('#team-summary').textContent=`Team CPH ${fmt(teamCPH)} • ${good}/${rows.length} meeting dept/global targets • Total ${totalCases} cases in ${fmt(totalHours)} hrs.`;
+  updateInsights();
+  updateHealth();
   drawCharts();
 }
 
@@ -440,13 +620,17 @@ function initZones(){
     const completedInput = z.type==='check' ? `<input type="checkbox" class="checkbox zdone" data-total="${z.total}"/>`
       : `<input type="number" class="input-field zcount" min="0" max="${z.total}" value="0" data-total="${z.total}"/>`;
     tb.insertAdjacentHTML('beforeend', `<tr>
+      <td><input type="checkbox" class="row-select zone-select"/></td>
       <td><span class="target-pill">${z.name}</span></td>
       <td>${z.total}</td><td>${completedInput}</td><td class="zone-percent">0%</td>
-      <td class="zone-status"><span class="status-badge status-danger">❌ Incomplete</span></td></tr>`);
+      <td><select class="input-field assign-select zone-assign"></select></td>
+      <td class="zone-status"><span class="status-badge status-danger">❌ Incomplete</span></td>
+      <td><button class="btn btn-sm history-btn" data-type="zone" data-zone="${z.name}">History</button></td></tr>`);
   });
   tb.querySelectorAll('.zcount').forEach(i=>i.addEventListener('change',()=>updateZoneRow(i)));
   tb.querySelectorAll('.zdone').forEach(i=>i.addEventListener('change',()=>updateZoneRow(i)));
   updateZoneTotals();
+  updateAssignOptions();
 }
 function zoneStatus(pct){ if(pct>=100) return ['✅ Complete','status-badge status-excellent']; if(pct>=75) return ['🟡 On Track','status-badge status-good']; if(pct>0) return ['⚠️ In Progress','status-badge status-warning']; return ['❌ Incomplete','status-badge status-danger'] }
 function updateZoneRow(input){
@@ -457,8 +641,11 @@ function updateZoneRow(input){
 }
 function updateZoneTotals(){
   const rows=[...$('#zone-tbody').rows]; let totalA=0,totalD=0;
-  rows.forEach(r=>{const total=Number(r.cells[1].textContent)||1; totalA+=total; const pct=Number(r.cells[3].textContent.replace('%',''))||0; totalD+=Math.round(pct*total/100)});
-  const overall=Math.round((totalD/totalA)*100)||0; $('#zone-progress').style.width=overall+'%'; $('#zone-progress').textContent=overall+'% Complete'; drawCharts();
+  rows.forEach(r=>{const total=Number(r.cells[2].textContent)||1; totalA+=total; const pct=Number(r.cells[4].textContent.replace('%',''))||0; totalD+=Math.round(pct*total/100)});
+  const overall=Math.round((totalD/totalA)*100)||0; $('#zone-progress').style.width=overall+'%'; $('#zone-progress').textContent=overall+'% Complete';
+  updateInsights();
+  updateHealth();
+  drawCharts();
 }
 
 /* ===== Tours ===== */
@@ -467,8 +654,11 @@ function initTours(){
   const tb=$('#tours-tbody'); tb.innerHTML='';
   tourSlots.forEach(([label,target])=>{
     tb.insertAdjacentHTML('beforeend', `<tr>
+      <td><input type="checkbox" class="row-select tour-select"/></td>
       <td><strong>${label}</strong></td><td>${target}</td>
       <td><input type="time" class="input-field t-actual"/></td>
+      <td><select class="input-field assign-select tour-assign"></select></td>
+      <td class="countdown">--</td>
       <td><input type="checkbox" class="checkbox tck"/></td>
       <td><input type="checkbox" class="checkbox tck"/></td>
       <td><input type="checkbox" class="checkbox tck"/></td>
@@ -477,35 +667,42 @@ function initTours(){
       <td><input type="checkbox" class="checkbox tck"/></td>
       <td><input type="text" class="input-field t-temp" placeholder="°F"/></td>
       <td class="tour-status"><span class="time-indicator" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffb81c;margin-right:6px"></span>Pending</td>
+      <td><button class="btn btn-sm history-btn" data-type="fresh" data-slot="${label}">History</button></td>
     </tr>`);
   });
   $('#tours-tbody').querySelectorAll('.t-actual').forEach(i=>i.addEventListener('change',()=>updateTourRow(i)));
   $('#tours-tbody').querySelectorAll('.tck').forEach(i=>i.addEventListener('change',()=>updateTourRow(i)));
+  updateAssignOptions();
 }
 function updateTourRow(input){
-  const tr=input.closest('tr'); const target=tr.cells[1].textContent.trim(); const actual=$('.t-actual',tr).value;
+  const tr=input.closest('tr'); const target=tr.cells[2].textContent.trim(); const actual=$('.t-actual',tr).value;
   const checks=$$('.tck',tr); const allDone=checks.length && checks.every(c=>c.checked);
   let statusText='Pending', color='#ffb81c';
   if(actual){ const diff=Math.abs(toMinutes(actual)-toMinutes(target)); if(diff<=20){statusText='On Time'; color='#00a651'} else if(diff<=45){statusText='Late'; color='#ffb81c'} else {statusText='Overdue'; color='#e31837'} }
   if(allDone && actual){ statusText+=' • All checks done' }
   tr.querySelector('.tour-status').innerHTML = `<span class="time-indicator" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};margin-right:6px"></span>${statusText}`;
+  updateCountdowns();
+  updateInsights();
+  updateHealth();
 }
 function exportToursCSV(showFeedback=true){
   const rows=[...$('#tours-tbody').rows];
-  const headers=['Slot','Target','Actual','Produce','Meat','Deli','Bakery','Dairy','Frozen','Temp','Status'];
+  const headers=['Slot','Target','Actual','Assigned','Countdown','Produce','Meat','Deli','Bakery','Dairy','Frozen','Temp','Status'];
   const csv=[headers.join(',')].concat(rows.map(r=>{
-    const vals=[r.cells[0].innerText.trim(),r.cells[1].innerText.trim(),$('.t-actual',r).value||'',...$$('.tck',r).map(c=>c.checked?'✔':''),r.cells[9].querySelector('input').value||'',r.cells[10].innerText.trim()];
+    const vals=[r.cells[1].innerText.trim(),r.cells[2].innerText.trim(),$('.t-actual',r).value||'', $('.tour-assign',r).value||'', r.cells[5].innerText.trim(), ...$$('.tck',r).map(c=>c.checked?'✔':''),r.cells[12].querySelector('input')?.value||'',r.cells[13].innerText.trim()];
     return vals.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
   })).join('\n'); download('tours.csv',csv); if(showFeedback) logAction('Export tours CSV','Tours CSV exported');
 }
 
 /* ===== Overstock ===== */
 function overstockRowTemplate(){
-  return `<tr>
+  return `<tr class="swipeable">
+    <td><input type="checkbox" class="row-select overstock-select"/></td>
     <td><input class="input-field loc" placeholder="Aisle/Section"/></td>
     <td><input class="input-field upc" placeholder="UPC or Description"/></td>
     <td><input class="input-field qty" type="number" min="0" placeholder="0"/></td>
     <td><select class="input-field action"><option>Binned</option><option>Flexed</option><option>Worked</option><option>RTV</option><option>Claims</option></select></td>
+    <td><select class="input-field assign-select overstock-assign"></select></td>
     <td class="status-cell">
       <select class="input-field status-select">
         <option>Pending</option><option>In Progress</option><option>Done</option>
@@ -519,6 +716,7 @@ function addOverstockRow(showFeedback=true){
   $('#overstock-tbody').insertAdjacentHTML('beforeend', overstockRowTemplate());
   const row=$('#overstock-tbody').lastElementChild;
   hookOverstockInputs(row);
+  updateAssignOptions();
   if(showFeedback) logAction('Add overstock item','Added overstock item');
 }
 function colorOverstockStatus(sel){
@@ -532,29 +730,29 @@ function hookOverstockInputs(scope){
   const ctx=scope||document;
   ctx.querySelectorAll('#overstock-tbody input,#overstock-tbody select').forEach(el=>{
     if(el.classList.contains('status-select')){
-      el.addEventListener('change', e=>{ colorOverstockStatus(e.target); logAction('Update overstock status','Updated overstock status'); });
+      el.addEventListener('change', e=>{ colorOverstockStatus(e.target); logAction('Update overstock status','Updated overstock status'); updateInsights(); });
     } else {
-      el.addEventListener('change', ()=>logAction('Edit overstock row'));
+      el.addEventListener('change', ()=>{ logAction('Edit overstock row'); updateInsights(); });
     }
   });
 }
 function exportTableCSV(which, showFeedback=true){
   let rows=[], headers=[];
   if(which==='freight'){
-    headers=['Associate','Department','Clock In','Clock Out','Cases','Hours','Cases/Hr','Status'];
-    rows=[...$('#freight-tbody').rows].map(r=>[$('.assoc',r).value,$('.dept',r).value,$('.cin',r).value,$('.cout',r).value,$('.cases',r).value,r.cells[5].innerText.trim(),r.cells[6].innerText.trim(),r.cells[7].innerText.trim()]);
+    headers=['Associate','Department','Clock In','Clock Out','Cases','Hours','Cases/Hr','Assigned','Status'];
+    rows=[...$('#freight-tbody').rows].map(r=>[$('.assoc',r).value,$('.dept',r).value,$('.cin',r).value,$('.cout',r).value,$('.cases',r).value,$('.hours-cell',r).innerText.trim(),$('.caseshr-cell',r).innerText.trim(),$('.freight-assign',r)?.value||'',r.querySelector('.status-cell')?.innerText.trim()]);
   }else if(which==='overstock'){
-    headers=['Location','Item/UPC','Qty','Action','Status'];
-    rows=[...$('#overstock-tbody').rows].map(r=>[$('.loc',r).value,$('.upc',r).value,$('.qty',r).value,$('.action',r).value,(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')]);
+    headers=['Location','Item/UPC','Qty','Action','Assigned','Status'];
+    rows=[...$('#overstock-tbody').rows].map(r=>[$('.loc',r).value,$('.upc',r).value,$('.qty',r).value,$('.action',r).value,$('.overstock-assign',r)?.value||'',(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')]);
   }
   const csv=[headers.join(',')].concat(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n'); download(`${which}.csv`,csv); if(showFeedback) logAction(`Export ${which} CSV`,`${which.charAt(0).toUpperCase()+which.slice(1)} CSV exported`);
 }
 function exportZonesCSV(showFeedback=true){
   const headers=['Zone','Total','Completed','Percent','Status'];
   const csv=[headers.join(',')].concat([...$('#zone-tbody').rows].map(r=>{
-    const zone=r.cells[0].innerText.trim(), total=r.cells[1].innerText.trim();
-    const compCell=r.cells[2]; const comp=(compCell.querySelector('.zcount')?.value) ?? (compCell.querySelector('.zdone')?.checked ? '1' : '0');
-    const pct=r.cells[3].innerText.trim(); const st=r.cells[4].innerText.trim();
+    const zone=r.cells[1].innerText.trim(), total=r.cells[2].innerText.trim();
+    const compCell=r.cells[3]; const comp=(compCell.querySelector('.zcount')?.value) ?? (compCell.querySelector('.zdone')?.checked ? '1' : '0');
+    const pct=r.cells[4].innerText.trim(); const st=r.cells[6].innerText.trim();
     return [zone,total,comp,pct,st].map(v=>`"${v}"`).join(',');
   })).join('\n'); download('zones.csv',csv); if(showFeedback) logAction('Export zones CSV','Zones CSV exported');
 }
@@ -566,13 +764,16 @@ function getCoachingForm(){
 }
 function saveCoaching(){ const entry=getCoachingForm(); const list=loadLocal('coach_entries',[]); list.push({...entry, ts:new Date().toISOString()}); saveLocal('coach_entries',list); renderCoachingList(); logAction('Save coaching entry','Coaching saved'); }
 function renderCoachingList(){
-  const box=$('#coaching-list'); box.innerHTML=''; const list=loadLocal('coach_entries',[]);
-  if(!list.length){ box.textContent='No entries yet.'; return; }
+  const box=$('#coaching-list'); const proxies=$$('.coaching-list-proxy');
+  box.innerHTML=''; const list=loadLocal('coach_entries',[]);
+  proxies.forEach(p=>p.innerHTML='');
+  if(!list.length){ box.textContent='No entries yet.'; proxies.forEach(p=>p.textContent='No entries yet.'); return; }
   list.forEach((e,i)=>{
     const div=document.createElement('div'); div.style.padding='8px 0';
     const date=new Date(e.ts).toLocaleString();
     div.innerHTML=`#${i+1} • ${date} • <strong>${e.associate}</strong> (${e.dept}) • Issues: ${e.issues.join(', ')||'—'} `;
-    box.appendChild(div);
+    box.appendChild(div.cloneNode(true));
+    proxies.forEach(p=>p.appendChild(div.cloneNode(true)));
   });
 }
 function exportCoaching(){
@@ -598,17 +799,20 @@ function initTopstock(){
           <option value="Blocked">Blocked</option>
         </select>
       </div>
+      <select class="input-field assign-select ts-owner" data-id="${id}"></select>
       <div class="target-row topstock-row"><label><input type="checkbox" class="checkbox ts-check" data-id="${id}"/> Verified</label></div>
       <input class="input-field ts-notes" data-id="${id}" placeholder="Notes (bins, modular, safety, etc.)"/>
     </div>`;
   [...topA,...topB].forEach(id=>grid.insertAdjacentHTML('beforeend', makeCard(id)));
   $$('.ts-check').forEach(c=>c.addEventListener('change',()=>{updateTopstockProgress(); logAction('Toggle top-stock checkbox','Top-stock updated');}));
   $$('.ts-status').forEach(s=>s.addEventListener('change',()=>{updateTopstockProgress(); logAction('Update top-stock status','Top-stock updated');}));
+  updateAssignOptions();
   updateTopstockProgress();
 }
 function updateTopstockProgress(){
   const checks=$$('.ts-check'); const total=checks.length; const verified=checks.filter(c=>c.checked).length;
   const pct=Math.round((verified/total)*100)||0; $('#topstock-progress').style.width=pct+'%'; $('#topstock-progress').textContent=pct+'% Verified';
+  updateInsights(); updateHealth();
 }
 function markTopstockAll(val, showFeedback=true){ $$('.ts-check').forEach(c=>c.checked=val); updateTopstockProgress(); if(showFeedback) logAction(val?'Mark all top-stock verified':'Clear all top-stock','Top-stock checkboxes updated'); }
 function exportTopstockCSV(showFeedback=true){
@@ -618,51 +822,252 @@ function exportTopstockCSV(showFeedback=true){
 }
 
 /* ===== Charts (placeholder simple) ===== */
-function drawCharts(){ /* No external libs; left as placeholder for now */ }
+function drawCharts(){
+  const cphCanvas=$('#chart-cph'); const zonesCanvas=$('#chart-zones');
+  if(cphCanvas){
+    const ctx=cphCanvas.getContext('2d'); ctx.clearRect(0,0,cphCanvas.width,cphCanvas.height);
+    const rows=[...$('#freight-tbody').rows]; const data=rows.map(r=>({name:$('.assoc',r).value||'Assoc', cph:Number($('.caseshr-cell',r).textContent)||0}));
+    const max=Math.max(10,...data.map(d=>d.cph)); const barW=(cphCanvas.width-40)/(data.length||1);
+    data.forEach((d,i)=>{ const h=(d.cph/max)*(cphCanvas.height-60); ctx.fillStyle='#2563eb'; ctx.fillRect(20+i*barW, cphCanvas.height-20-h, barW-10, h); ctx.fillStyle='#111'; ctx.fillText(d.name, 20+i*barW, cphCanvas.height-6); ctx.fillText(d.cph.toFixed(1), 20+i*barW, cphCanvas.height-30-h); });
+  }
+  if(zonesCanvas){
+    const ctx=zonesCanvas.getContext('2d'); ctx.clearRect(0,0,zonesCanvas.width,zonesCanvas.height);
+    const zones=[...$('#zone-tbody').rows].map(r=>Number($('.zone-percent',r).textContent.replace('%',''))||0);
+    const step=(zonesCanvas.width-40)/Math.max(1,zones.length-1);
+    ctx.strokeStyle='#16a34a'; ctx.beginPath(); ctx.moveTo(20, zonesCanvas.height-20-(zones[0]||0)*2);
+    zones.forEach((v,i)=>{ const x=20+i*step; const y=zonesCanvas.height-20-(v*2); ctx.lineTo(x,y); ctx.fillRect(x-2,y-2,4,4); });
+    ctx.stroke();
+  }
+}
+
+/* ===== Insights, Status, Health ===== */
+function moduleStatus(){
+  const freightRows=[...$('#freight-tbody').rows];
+  const slow=freightRows.filter(r=>$('.status-cell',r).innerText.includes('❌')).length;
+  const warn=freightRows.filter(r=>$('.status-cell',r).innerText.includes('⚠️')).length;
+  const zonesPct=parseInt($('#zone-progress').textContent)||0;
+  const zoneRed=zonesPct<50;
+  const tours=[...$('#tours-tbody').rows];
+  const overdueTours=tours.filter(r=>r.querySelector('.tour-status')?.innerText.includes('Overdue')).length;
+  const topPct=parseInt($('#topstock-progress').textContent)||0;
+  return {
+    freight: slow>0? 'red' : warn>0? 'yellow':'green',
+    zones: zoneRed? 'red': zonesPct>=90?'green':'yellow',
+    fresh: overdueTours>0? 'red': 'green',
+    topstock: topPct>=90?'green': topPct>50?'yellow':'red',
+    overstock: [...$('#overstock-tbody').rows].some(r=>r.querySelector('.status-display')?.innerText.includes('Pending'))?'yellow':'green',
+    coaching: loadLocal('coach_entries',[]).length? 'green':'yellow'
+  };
+}
+function applyStatus(el,status){ if(!el) return; el.className='module-status '+status; el.textContent=status==='red'?'🚨 Critical':status==='yellow'?'⚠️ Watching':'✅ Healthy'; }
+function updateGroupStatus(){
+  const ms=moduleStatus();
+  applyStatus($('#status-freight'), ms.freight);
+  applyStatus($('#status-zones'), ms.zones);
+  applyStatus($('#status-fresh'), ms.fresh);
+  applyStatus($('#status-topstock'), ms.topstock);
+  applyStatus($('#status-overstock'), ms.overstock);
+  applyStatus($('#status-coaching'), ms.coaching);
+  const groupWorst=(items)=> items.includes('red')?'red': items.includes('yellow')?'yellow':'green';
+  applyStatus($('#group-live-status'), groupWorst([ms.freight,ms.zones,ms.fresh]));
+  applyStatus($('#group-compliance-status'), groupWorst([ms.topstock,ms.overstock]));
+  applyStatus($('#group-people-status'), groupWorst([ms.coaching]));
+}
+function updateInsights(){
+  const roster=loadLocal(rosterKey,[]);
+  const freightRows=[...$('#freight-tbody').rows];
+  const slow=freightRows.filter(r=>$('.status-cell',r).innerText.includes('❌')).map(r=>$('.assoc',r).value||'Unassigned');
+  $('#insight-freight').textContent = slow.length? `${slow.length} associates below target: ${slow.join(', ')}` : 'All associates at or above target.';
+  const zones=[...$('#zone-tbody').rows];
+  const lowest=zones.reduce((acc,r)=>{const pct=Number($('.zone-percent',r).textContent.replace('%',''))||0; return pct<(acc?.pct??101)?{name:r.cells[1].innerText.trim(),pct}:acc;},null);
+  $('#insight-zones').textContent = lowest? `${lowest.name} is bottleneck (${lowest.pct}% complete)` : 'No zone data yet.';
+  const tours=[...$('#tours-tbody').rows];
+  const next=tours.map(r=>({slot:r.cells[1].innerText.trim(), target:r.cells[2].innerText.trim()})).sort((a,b)=>toMinutes(a.target)-toMinutes(b.target))[0];
+  const nowM=toMinutes(new Date().toTimeString().slice(0,5));
+  const mins=next? toMinutes(next.target)-nowM:0; const label=mins>0? `${Math.round(mins)} mins`:'Now';
+  $('#insight-fresh').textContent = next? `Next check (${next.slot}) in ${label}`:'No tours scheduled';
+  const needsWork=[...document.querySelectorAll('.ts-status')].filter(s=>s.value==='Needs Work').map(s=>s.closest('.topstock-card')?.querySelector('strong')?.innerText||'');
+  $('#insight-topstock').textContent = needsWork.length? `${needsWork.slice(0,3).join(', ')} flagged Needs Work` : 'Top-Stock looks healthy.';
+  const overPend=[...$('#overstock-tbody').rows].filter(r=>r.querySelector('.status-display')?.innerText==='Pending');
+  $('#insight-overstock').textContent = overPend.length? `${overPend.length} items awaiting action`:'All overstock resolved.';
+  const coach=loadLocal('coach_entries',[]);
+  $('#insight-coaching').textContent = coach.length? `${coach.length} follow-ups tracked`:'No coaching entries yet.';
+  updateGroupStatus();
+}
+function updateHealth(){
+  const freightScore=Math.min(1, (Number($('#kpi-avg-cph').textContent)||0)/(DEFAULT_TARGET_CPH));
+  const zoneScore=(parseInt($('#zone-progress').textContent)||0)/100;
+  const freshRows=[...$('#tours-tbody').rows];
+  const onTime=freshRows.filter(r=>r.querySelector('.tour-status')?.innerText.includes('On Time')).length;
+  const freshScore=freshRows.length? onTime/freshRows.length : 0;
+  const topScore=(parseInt($('#topstock-progress').textContent)||0)/100;
+  const score=Math.round((freightScore*0.35 + zoneScore*0.25 + freshScore*0.25 + topScore*0.15)*100);
+  $('#health-score').textContent=score;
+  $('#health-pill').title='Click to see how score is calculated';
+}
+
+/* ===== Countdown & Timeline ===== */
+function updateCountdowns(){
+  const nowM=toMinutes(new Date().toTimeString().slice(0,5));
+  $('#tours-tbody')?.querySelectorAll('tr').forEach(tr=>{
+    const target=toMinutes(tr.cells[2].innerText.trim());
+    const cell=tr.querySelector('.countdown');
+    if(!cell) return;
+    let diff=target-nowM; let label='--'; let cls='';
+    if(isFinite(diff)){
+      if(diff>=0){ label=`${Math.floor(diff/60)}h ${Math.abs(diff%60)}m`; cls=''; }
+      else { label=`Overdue by ${Math.abs(Math.floor(diff/60))}h ${Math.abs(diff%60)}m`; cls='danger-text'; }
+    }
+    cell.textContent=label;
+    cell.className='countdown '+cls;
+  });
+}
+function renderTimeline(){
+  const bar=$('#shiftTimeline'); if(!bar) return; bar.innerHTML='';
+  const day=24*60;
+  const nowPct=(toMinutes(new Date().toTimeString().slice(0,5))/day)*100;
+  const nowMarker=document.createElement('div'); nowMarker.className='timeline-now'; nowMarker.style.left=nowPct+'%'; nowMarker.textContent='Now'; bar.appendChild(nowMarker);
+  tourSlots.forEach(([label,time])=>{ const mk=document.createElement('div'); mk.className='timeline-marker'; mk.style.left=((toMinutes(time)/day)*100)+'%'; mk.textContent=label; bar.appendChild(mk); });
+  const followups=loadLocal('coach_entries',[]).filter(c=>c.follow);
+  followups.forEach(f=>{ const dt=new Date(f.follow+'T12:00'); const pct=((dt.getHours()*60+dt.getMinutes())/day)*100; const mk=document.createElement('div'); mk.className='timeline-marker followup'; mk.style.left=pct+'%'; mk.textContent='Follow-up'; bar.appendChild(mk); });
+}
+
+/* ===== Shortcuts & Navigation ===== */
+function initShortcuts(){
+  document.addEventListener('keydown',e=>{
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
+    if(e.key==='f' || e.key==='F'){ addFreightRow(); toast('Added freight row'); }
+    if(e.key==='z' || e.key==='Z'){ document.querySelector('#zones')?.scrollIntoView({behavior:'smooth'}); toast('Jumped to Zones'); }
+    if(e.key==='t' || e.key==='T'){ document.querySelector('#topstock')?.scrollIntoView({behavior:'smooth'}); toast('Jumped to Top-Stock'); }
+    if(e.key==='c' || e.key==='C'){ document.querySelector('#coaching-embedded')?.scrollIntoView({behavior:'smooth'}); toast('Opened Coaching'); }
+    if(e.key==='/'){ $('#rosterInput')?.focus(); e.preventDefault(); }
+  });
+}
+function initNavHighlight(){
+  const links=$$('.quick-link');
+  const obs=new IntersectionObserver(entries=>{ entries.forEach(en=>{ if(en.isIntersecting){ links.forEach(l=>{ if(l.getAttribute('href').slice(1)===en.target.id) l.classList.add('active'); else l.classList.remove('active'); }); } }); },{rootMargin:'-30% 0px -60% 0px'});
+  ['freight','zones','fresh','topstock','overstock','coaching-embedded'].forEach(id=>{ const el=document.getElementById(id); if(el) obs.observe(el); });
+  links.forEach(l=>l.addEventListener('click',e=>{ e.preventDefault(); document.querySelector(l.getAttribute('href'))?.scrollIntoView({behavior:'smooth'}); }));
+}
+
+/* ===== Bulk & Swipe ===== */
+function setupBulk(containerSel, toolbarSel){
+  const container=$(containerSel), toolbar=$(toolbarSel); if(!container||!toolbar) return;
+  container.addEventListener('change',()=>{
+    const any=[...container.querySelectorAll('.row-select')].some(c=>c.checked);
+    toolbar.classList.toggle('hidden', !any);
+  });
+}
+function initSwipeables(){
+  let startX=0, target=null;
+  document.addEventListener('pointerdown',e=>{ const row=e.target.closest('.swipeable'); if(row){ startX=e.clientX; target=row; } });
+  document.addEventListener('pointerup',e=>{ if(!target) return; const dx=e.clientX-startX; if(Math.abs(dx)>60){ if(dx>0){ target.classList.add('swiped'); target.querySelector('.status-select')?.value='Done'; } else { target.classList.add('swiped-left'); target.querySelector('.status-select')?.value='Pending'; } } target=null; updateInsights(); });
+}
+
+/* ===== History ===== */
+function recordHistory(){
+  const list=loadLocal(historyKey,[]);
+  const snap=snapshot();
+  list.push({ts:Date.now(),snap});
+  saveLocal(historyKey,list.slice(-50));
+}
+function openHistory(filter){
+  const list=loadLocal(historyKey,[]).reverse();
+  const body=$('#historyBody');
+  if(!list.length){ body.textContent='No history yet.'; return; }
+  const start=$('#historyStart').value? new Date($('#historyStart').value).getTime():0;
+  const end=$('#historyEnd').value? new Date($('#historyEnd').value).getTime():Date.now();
+  const status=$('#historyStatus').value;
+  body.innerHTML='';
+  list.filter(h=>h.ts>=start && h.ts<=end).forEach(h=>{
+    const div=document.createElement('div');
+    const date=new Date(h.ts).toLocaleString();
+    div.className='history-row';
+    div.textContent=`${date} • Freight rows: ${h.snap.freight.length}, Zones: ${h.snap.zones.map(z=>z.zone+':'+z.val).join(' | ')}`;
+    body.appendChild(div);
+  });
+}
+
+/* ===== Exports / Shift Report ===== */
+function exportShiftReport(){
+  const snap=snapshot();
+  recordHistory();
+  const report={
+    generated:new Date().toISOString(),
+    roster:snap.roster,
+    roles:snap.roles,
+    health:$('#health-score').textContent,
+    freight:snap.freight,
+    zones:snap.zones,
+    tours:snap.tours,
+    overstock:snap.overstock,
+    topstock:snap.topstock,
+    coaching:snap.coaching
+  };
+  download('shift_report.json', JSON.stringify(report,null,2));
+  toast('Shift report downloaded');
+}
+
+/* ===== FAB ===== */
+function initFab(){
+  const fab=$('#fab'), sheet=$('#fabSheet');
+  fab?.addEventListener('click',()=>sheet?.classList.toggle('hidden'));
+  sheet?.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{
+    sheet.classList.add('hidden');
+    if(btn.dataset.quick==='freight') addFreightRow();
+    if(btn.dataset.quick==='coaching') $('#coaching-embedded')?.scrollIntoView({behavior:'smooth'});
+    if(btn.dataset.quick==='overstock') addOverstockRow();
+  }));
+}
 
 /* ===== Snapshot / Restore ===== */
 function snapshot(){
   const prefs = loadLocal('wm_prefs', {});
   const deptTargets = loadLocal('wm_dept_targets', {});
-  const freight=[...$('#freight-tbody').rows].map(r=>({assoc:$('.assoc',r).value,dept:$('.dept',r).value,cin:$('.cin',r).value,cout:$('.cout',r).value,cases:Number($('.cases',r).value||0)}));
+  const roster = loadLocal('wm_roster', []);
+  const roles = loadLocal('wm_roles', {});
+  const freight=[...$('#freight-tbody').rows].map(r=>({assoc:$('.assoc',r).value,dept:$('.dept',r).value,cin:$('.cin',r).value,cout:$('.cout',r).value,cases:Number($('.cases',r).value||0),assign:$('.freight-assign',r)?.value||''}));
   // zones
   const zones=[...$('#zone-tbody').rows].map(r=>{
-    const zone=r.cells[0].innerText.trim(); const total=Number(r.cells[1].innerText.trim());
-    const compCell=r.cells[2]; const val=(compCell.querySelector('.zcount')?.value) ?? (compCell.querySelector('.zdone')?.checked ? 1 : 0);
-    return {zone,total,val};
+    const zone=r.cells[1].innerText.trim(); const total=Number(r.cells[2].innerText.trim());
+    const compCell=r.cells[3]; const val=(compCell.querySelector('.zcount')?.value) ?? (compCell.querySelector('.zdone')?.checked ? 1 : 0);
+    return {zone,total,val,assign:r.querySelector('.zone-assign')?.value||''};
   });
   // tours
-  const tours=[...$('#tours-tbody').rows].map(r=>({slot:r.cells[0].innerText.trim(),target:r.cells[1].innerText.trim(),actual:$('.t-actual',r).value||'',checks:$$('.tck',r).map(c=>c.checked),temp:r.cells[9].querySelector('input').value||''}));
+  const tours=[...$('#tours-tbody').rows].map(r=>({slot:r.cells[1].innerText.trim(),target:r.cells[2].innerText.trim(),actual:$('.t-actual',r).value||'',assign:r.querySelector('.tour-assign')?.value||'',checks:$$('.tck',r).map(c=>c.checked),temp:r.cells[12].querySelector('input').value||''}));
   // overstock
-  const overstock=[...$('#overstock-tbody').rows].map(r=>({loc:$('.loc',r).value,upc:$('.upc',r).value,qty:Number($('.qty',r).value||0),action:$('.action',r).value,status:(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')}));
+  const overstock=[...$('#overstock-tbody').rows].map(r=>({loc:$('.loc',r).value,upc:$('.upc',r).value,qty:Number($('.qty',r).value||0),action:$('.action',r).value,assign:r.querySelector('.overstock-assign')?.value||'',status:(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')}));
   // topstock
-  const topstock=[...topA,...topB].map(id=>({id,ver:document.querySelector(`.ts-check[data-id="${id}"]`)?.checked||false,status:document.querySelector(`.ts-status[data-id="${id}"]`)?.value||'',notes:document.querySelector(`.ts-notes[data-id="${id}"]`)?.value||''}));
+  const topstock=[...topA,...topB].map(id=>({id,ver:document.querySelector(`.ts-check[data-id="${id}"]`)?.checked||false,status:document.querySelector(`.ts-status[data-id="${id}"]`)?.value||'',notes:document.querySelector(`.ts-notes[data-id="${id}"]`)?.value||'',owner:document.querySelector(`.ts-owner[data-id="${id}"]`)?.value||''}));
   const coaching=loadLocal('coach_entries',[]);
-  return {prefs,deptTargets,freight,zones,tours,overstock,topstock,coaching};
+  return {prefs,deptTargets,roster,roles,freight,zones,tours,overstock,topstock,coaching};
 }
 function restore(state){
   // prefs
   if(state?.prefs) saveLocal('wm_prefs', state.prefs);
   if(state?.deptTargets) saveLocal('wm_dept_targets', state.deptTargets);
+  if(state?.roster) saveLocal('wm_roster', state.roster);
+  if(state?.roles) saveLocal('wm_roles', state.roles);
   renderDeptTargets();
+  renderRoster();
   // freight
   $('#freight-tbody').innerHTML=''; (state?.freight||[{},{},{}]).forEach(()=>addFreightRow());
-  (state?.freight||[]).forEach((row,i)=>{const tr=$('#freight-tbody').rows[i]; if(!tr) return; $('.assoc',tr).value=row.assoc||''; $('.dept',tr).value=row.dept||departments[0]; $('.cin',tr).value=row.cin||''; $('.cout',tr).value=row.cout||''; $('.cases',tr).value=row.cases||0; });
+  (state?.freight||[]).forEach((row,i)=>{const tr=$('#freight-tbody').rows[i]; if(!tr) return; $('.assoc',tr).value=row.assoc||''; $('.dept',tr).value=row.dept||departments[0]; $('.cin',tr).value=row.cin||''; $('.cout',tr).value=row.cout||''; $('.cases',tr).value=row.cases||0; $('.freight-assign',tr).value=row.assign||''; });
   recalcFreight();
   // zones
   initZones();
-  if(state?.zones){ state.zones.forEach((z,i)=>{const tr=$('#zone-tbody').rows[i]; if(!tr) return; const inp=tr.cells[2].querySelector('.zcount'); const chk=tr.cells[2].querySelector('.zdone'); if(inp){inp.value=z.val; updateZoneRow(inp);} if(chk){chk.checked=Boolean(z.val); updateZoneRow(chk);} }); }
+  if(state?.zones){ state.zones.forEach((z,i)=>{const tr=$('#zone-tbody').rows[i]; if(!tr) return; const inp=tr.cells[3].querySelector('.zcount'); const chk=tr.cells[3].querySelector('.zdone'); if(inp){inp.value=z.val; updateZoneRow(inp);} if(chk){chk.checked=Boolean(z.val); updateZoneRow(chk);} const asn=tr.querySelector('.zone-assign'); if(asn) asn.value=z.assign||''; }); }
   // tours
   initTours();
-  if(state?.tours){ state.tours.forEach((t,i)=>{const tr=$('#tours-tbody').rows[i]; if(!tr) return; $('.t-actual',tr).value=t.actual||''; const cks=$$('.tck',tr); (t.checks||[]).forEach((v,ix)=>{ if(cks[ix]) cks[ix].checked=!!v; }); tr.cells[9].querySelector('input').value=t.temp||''; updateTourRow($('.t-actual',tr)); }); }
+  if(state?.tours){ state.tours.forEach((t,i)=>{const tr=$('#tours-tbody').rows[i]; if(!tr) return; $('.t-actual',tr).value=t.actual||''; const cks=$$('.tck',tr); (t.checks||[]).forEach((v,ix)=>{ if(cks[ix]) cks[ix].checked=!!v; }); tr.cells[12].querySelector('input').value=t.temp||''; const asn=tr.querySelector('.tour-assign'); if(asn) asn.value=t.assign||''; updateTourRow($('.t-actual',tr)); }); }
   // overstock
   $('#overstock-tbody').innerHTML=''; (state?.overstock||[{},{},{}]).forEach(()=>addOverstockRow(false));
-  (state?.overstock||[]).forEach((o,i)=>{const tr=$('#overstock-tbody').rows[i]; if(!tr) return; $('.loc',tr).value=o.loc||''; $('.upc',tr).value=o.upc||''; $('.qty',tr).value=o.qty||0; $('.action',tr).value=o.action||'Binned'; const sel=tr.querySelector('.status-select'); if(sel){ sel.value=o.status||'Pending'; colorOverstockStatus(sel); }});
+  (state?.overstock||[]).forEach((o,i)=>{const tr=$('#overstock-tbody').rows[i]; if(!tr) return; $('.loc',tr).value=o.loc||''; $('.upc',tr).value=o.upc||''; $('.qty',tr).value=o.qty||0; $('.action',tr).value=o.action||'Binned'; const sel=tr.querySelector('.status-select'); if(sel){ sel.value=o.status||'Pending'; colorOverstockStatus(sel); } const asn=tr.querySelector('.overstock-assign'); if(asn) asn.value=o.assign||''; });
   // coaching
   if(state?.coaching) saveLocal('coach_entries', state.coaching); renderCoachingList();
   // topstock
   initTopstock();
-  if(state?.topstock){ state.topstock.forEach(ts=>{ const c=document.querySelector(`.ts-check[data-id="${ts.id}"]`); if(c) c.checked=!!ts.ver; const s=document.querySelector(`.ts-status[data-id="${ts.id}"]`); if(s) s.value=ts.status||''; const n=document.querySelector(`.ts-notes[data-id="${ts.id}"]`); if(n) n.value=ts.notes||''; }); updateTopstockProgress(); }
+  if(state?.topstock){ state.topstock.forEach(ts=>{ const c=document.querySelector(`.ts-check[data-id="${ts.id}"]`); if(c) c.checked=!!ts.ver; const s=document.querySelector(`.ts-status[data-id="${ts.id}"]`); if(s) s.value=ts.status||''; const n=document.querySelector(`.ts-notes[data-id="${ts.id}"]`); if(n) n.value=ts.notes||''; const o=document.querySelector(`.ts-owner[data-id="${ts.id}"]`); if(o) o.value=ts.owner||''; }); updateTopstockProgress(); }
 }
 
 /* ===== Save / Load / Export / Clear / Print ===== */
@@ -691,7 +1096,7 @@ function initStorageButtons(){
       importInput.click();
     }catch(e){ alert('Load failed: '+e.message); console.error(e); }
   });
-  exportBtn?.addEventListener('click',()=>{ exportTableCSV('freight',false); exportTableCSV('overstock',false); exportZonesCSV(false); exportToursCSV(false); exportTopstockCSV(false); logAction('Export all CSVs','All CSVs exported'); });
+  exportBtn?.addEventListener('click',()=>{ recordHistory(); exportTableCSV('freight',false); exportTableCSV('overstock',false); exportZonesCSV(false); exportToursCSV(false); exportTopstockCSV(false); logAction('Export all CSVs','All CSVs exported'); });
   clearBtn?.addEventListener('click',()=>{ if(confirm('Clear all tables (does not delete coaching)?')){ localStorage.removeItem('wm_dashboard_state'); restore({}); logAction('Clear dashboard data','Dashboard cleared'); } });
   printBtn?.addEventListener('click',()=>{ window.print(); logAction('Print/PDF dashboard','Print/PDF triggered'); });
 }
@@ -722,12 +1127,46 @@ function initClickActions(){
   $('#exportToursBtn')?.addEventListener('click',()=>exportToursCSV());
 
   $('#settingsModal')?.querySelector('.modal')?.addEventListener('click',e=>e.stopPropagation());
+
+  $('#openExports')?.addEventListener('click',()=>$('#exportsModal')?.classList.remove('hidden'));
+  $('#closeExports')?.addEventListener('click',()=>$('#exportsModal')?.classList.add('hidden'));
+  $('#exportZonesModal')?.addEventListener('click',()=>exportZonesCSV());
+  $('#exportToursModal')?.addEventListener('click',()=>exportToursCSV());
+  $('#exportTopstockModal')?.addEventListener('click',()=>exportTopstockCSV());
+  $('#exportCoachingModal')?.addEventListener('click',()=>exportCoaching());
+  $('#exportShiftReport')?.addEventListener('click',exportShiftReport);
+
+  $('#openHelp')?.addEventListener('click',()=>$('#helpModal')?.classList.remove('hidden'));
+  $('#openHelp')?.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#helpModal')?.classList.remove('hidden'); }});
+  $('#closeHelp')?.addEventListener('click',()=>$('#helpModal')?.classList.add('hidden'));
+
+  $('#health-pill')?.addEventListener('click',()=>$('#healthInfoModal')?.classList.remove('hidden'));
+  $('#closeHealthInfo')?.addEventListener('click',()=>$('#healthInfoModal')?.classList.add('hidden'));
+
+  document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-backdrop')) e.target.classList.add('hidden'); });
+
+  document.body.addEventListener('click',e=>{ const btn=e.target.closest('.history-btn'); if(btn){ $('#historyModal')?.classList.remove('hidden'); openHistory({type:btn.dataset.type, id:btn.dataset.zone||btn.dataset.slot}); }});
+  $('#closeHistory')?.addEventListener('click',()=>$('#historyModal')?.classList.add('hidden'));
+  $('#historyStart')?.addEventListener('change',()=>openHistory());
+  $('#historyEnd')?.addEventListener('change',()=>openHistory());
+  $('#historyStatus')?.addEventListener('change',()=>openHistory());
+
+  $('#markFreshComplete')?.addEventListener('click',()=>{ if(confirm('Mark all fresh areas complete?')){ $('#tours-tbody').querySelectorAll('.tck').forEach(c=>c.checked=true); updateInsights(); }});
+  $('#clockInFresh')?.addEventListener('click',()=>{ const now=new Date(); const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; $('#tours-tbody').querySelectorAll('.t-actual').forEach(inp=>inp.value=t); updateCountdowns(); updateInsights(); });
+
+  document.querySelector('[data-jump="#coaching-embedded"]')?.addEventListener('click',()=>document.querySelector('#coaching-embedded')?.scrollIntoView({behavior:'smooth'}));
 }
 
 /* ===== Init ===== */
 function init(){
-  initHeader(); initTabs(); renderDeptTargets(); addFreightRow(); addFreightRow(); addFreightRow(); recalcFreight(); initZones(); initTours(); initStorageButtons(); initTopstock(); renderCoachingList(); initClickActions();
+  initHeader(); initTabs(); renderDeptTargets(); renderRoster(); addFreightRow(); addFreightRow(); addFreightRow(); recalcFreight(); initZones(); initTours(); initStorageButtons(); initTopstock(); renderCoachingList(); initClickActions();
+  setupBulk('#freight-tbody','#freight-bulk'); setupBulk('#zone-tbody','#zones-bulk'); setupBulk('#overstock-tbody','#overstock-bulk');
+  initShortcuts(); initNavHighlight(); initSwipeables(); initFab();
   const state=loadLocal('wm_dashboard_state', null); if(state) restore(state);
+  updateCountdowns(); updateInsights(); updateHealth(); renderTimeline();
+  setInterval(updateCountdowns,30000);
+  const groups=$$('details.group'); const saved=loadLocal('wm_groups',{}); groups.forEach(g=>{ if(saved[g.dataset.group]===false) g.open=false; g.addEventListener('toggle',()=>{ saved[g.dataset.group]=g.open; saveLocal('wm_groups',saved); }); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $$('.modal-backdrop').forEach(m=>m.classList.add('hidden')); } });
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
