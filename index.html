@@ -45,10 +45,10 @@
         <span class="nav-title">Workspace</span>
         <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰ Menu</button>
       </div>
-      <div class="tabs" id="tabNav">
-        <div class="tab active" data-tab="dashboard">📊 Daily Dashboard</div>
-        <div class="tab" data-tab="coaching">👥 Coaching Tracker</div>
-        <div class="tab" data-tab="reports">📈 Reports</div>
+      <div class="tabs" id="tabNav" role="tablist">
+        <div class="tab active" data-tab="dashboard" role="tab" tabindex="0" aria-selected="true">📊 Daily Dashboard</div>
+        <div class="tab" data-tab="coaching" role="tab" tabindex="0" aria-selected="false">👥 Coaching Tracker</div>
+        <div class="tab" data-tab="reports" role="tab" tabindex="0" aria-selected="false">📈 Reports</div>
       </div>
     </aside>
 
@@ -66,7 +66,7 @@
             <tbody id="freight-tbody"></tbody>
           </table>
         </div>
-        <div class="right" style="margin-top:6px"><button class="btn btn-primary" onclick="addFreightRow()">＋ Add Row</button></div>
+        <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addFreightBtn">＋ Add Row</button></div>
         <div class="kpi-grid">
           <div class="kpi-card"><div class="kpi-value" id="kpi-total-cases">0</div><div class="kpi-label">Total Cases</div></div>
           <div class="kpi-card"><div class="kpi-value" id="kpi-total-hours">0.0</div><div class="kpi-label">Total Hours</div></div>
@@ -111,7 +111,7 @@
             <tbody id="overstock-tbody"></tbody>
           </table>
         </div>
-        <div class="right" style="margin-top:6px"><button class="btn btn-primary" onclick="addOverstockRow()">＋ Add Item</button></div>
+        <div class="right" style="margin-top:6px"><button class="btn btn-primary" id="addOverstockBtn">＋ Add Item</button></div>
       </div>
 
       <div class="section full-width">
@@ -120,9 +120,9 @@
         <div class="progress-bar"><div class="progress-fill" id="topstock-progress" style="width:0%">0% Verified</div></div>
         <div id="topstock-grid" class="topstock-grid"></div>
         <div class="right" style="margin-top:6px">
-          <button class="btn btn-success" onclick="markTopstockAll(true)">Mark All Verified</button>
-          <button class="btn btn-warning" onclick="markTopstockAll(false)">Clear All</button>
-          <button class="btn btn-primary" onclick="exportTopstockCSV()">Export Top-Stock CSV</button>
+          <button class="btn btn-success" id="markTopstockAll">Mark All Verified</button>
+          <button class="btn btn-warning" id="clearTopstockAll">Clear All</button>
+          <button class="btn btn-primary" id="exportTopstock">Export Top-Stock CSV</button>
         </div>
       </div>
     </div>
@@ -159,9 +159,9 @@
         <div class="form-group"><label>Goals</label><textarea class="input-field" id="coach-goals" rows="3" placeholder="Specific, measurable goals..."></textarea></div>
         <div class="form-group"><label>Notes</label><textarea class="input-field" id="coach-notes" rows="3" placeholder="Observations, expectations, support..."></textarea></div>
         <div class="right">
-          <button class="btn btn-success" onclick="saveCoaching()">Save Entry</button>
-          <button class="btn btn-primary" onclick="exportCoaching()">Export CSV</button>
-          <button class="btn btn-warning" onclick="clearCoaching()">Clear Saved</button>
+          <button class="btn btn-success" id="saveCoachingBtn">Save Entry</button>
+          <button class="btn btn-primary" id="exportCoachingBtn">Export CSV</button>
+          <button class="btn btn-warning" id="clearCoachingBtn">Clear Saved</button>
         </div>
         <div class="section" style="margin-top:10px">
           <div class="section-header" style="border-bottom:none"><span>📦</span><h2 style="border:0">Saved Items</h2></div>
@@ -187,11 +187,11 @@
       <div class="section full-width">
         <div class="section-header"><span>🧾</span><h2>Quick Exports</h2></div>
         <div class="right" style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="exportTableCSV('freight')">Export Freight CSV</button>
-          <button class="btn btn-primary" onclick="exportTableCSV('overstock')">Export Overstock CSV</button>
-          <button class="btn btn-primary" onclick="exportZonesCSV()">Export Zones CSV</button>
-          <button class="btn btn-primary" onclick="exportToursCSV()">Export Tours CSV</button>
-          <button class="btn btn-primary" onclick="exportTopstockCSV()">Export Top-Stock CSV</button>
+          <button class="btn btn-primary quick-export" data-export="freight">Export Freight CSV</button>
+          <button class="btn btn-primary quick-export" data-export="overstock">Export Overstock CSV</button>
+          <button class="btn btn-primary" id="exportZonesBtn">Export Zones CSV</button>
+          <button class="btn btn-primary" id="exportToursBtn">Export Tours CSV</button>
+          <button class="btn btn-primary" id="exportTopstockQuick">Export Top-Stock CSV</button>
         </div>
       </div>
     </div>
@@ -206,11 +206,11 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Department Target Cases/Hr</h3>
-      <button class="btn btn-danger" onclick="toggleModal(false)">Close</button>
+      <button class="btn btn-danger" id="closeSettingsBtn">Close</button>
     </div>
     <div id="modal-targets" class="modal-grid"></div>
     <div class="right" style="margin-top:10px">
-      <button class="btn btn-success" onclick="saveDeptTargets()">Save Targets</button>
+      <button class="btn btn-success" id="saveDeptTargetsBtn">Save Targets</button>
     </div>
     <div class="muted" style="margin-top:8px">Leave blank to use the global target.</div>
   </div>
@@ -226,6 +226,7 @@ function saveLocal(k,d){localStorage.setItem(k,JSON.stringify(d))}
 function loadLocal(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}
 function download(filename,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv'}));a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0)}
 function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 14px;border-radius:8px;z-index:9999;font:600 14px system-ui,Segoe UI,sans-serif;';document.body.appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition="opacity .3s"},1200);setTimeout(()=>t.remove(),1600)}
+function logAction(action,msg){console.log(`[Dashboard] ${action}`); if(msg) toast(msg);}
 
 /* ===== Header / Theme / Pin ===== */
 const departments=['Dry Grocery','Consumables','Dairy','Frozen','Produce','Meat','Deli/Bakery'];
@@ -249,12 +250,14 @@ function initHeader(){
     document.body.classList.toggle('is-sticky');
     const p=loadLocal('wm_prefs',{}); p.pinHeader=document.body.classList.contains('is-sticky'); saveLocal('wm_prefs',p);
     $('#pinHeaderBtn').textContent = p.pinHeader ? '📌 Unpin header' : '📌 Pin header';
+    logAction('Toggle pinned header', p.pinHeader ? 'Header pinned' : 'Header unpinned');
   });
   $('#themeBtn').addEventListener('click',()=>{
     const isDark=document.documentElement.getAttribute('data-theme')==='dark';
     const next=isDark?'light':'dark';
     applyTheme(next);
-    prefs.theme=next; saveLocal('wm_prefs',prefs)
+    prefs.theme=next; saveLocal('wm_prefs',prefs);
+    logAction('Toggle theme', next==='dark'?'Dark mode enabled':'Light mode enabled');
   });
   ['trainer-name','shift-select','store-number','target-cph'].forEach(id=>$('#'+id).addEventListener('change',()=>{
     const p=loadLocal('wm_prefs',{});
@@ -270,13 +273,19 @@ function initHeader(){
 function initTabs(){
   const navToggle=$('#navToggle');
   const closeNav=()=>{ document.body.classList.remove('nav-open'); navToggle?.setAttribute('aria-expanded','false'); };
-  navToggle?.addEventListener('click', ()=>{ const open=document.body.classList.toggle('nav-open'); navToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); });
-  $$('.tab').forEach(t=>t.addEventListener('click',()=>{
-    $$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  navToggle?.addEventListener('click', ()=>{ const open=document.body.classList.toggle('nav-open'); navToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); logAction(open?'Open nav menu':'Close nav menu', open?'Navigation opened':'Navigation closed'); });
+  const activateTab=(t)=>{
+    $$('.tab').forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-selected','false');});
+    t.classList.add('active'); t.setAttribute('aria-selected','true');
     const tab=t.getAttribute('data-tab');$$('.tab-content').forEach(c=>c.classList.remove('active'));$('#'+tab).classList.add('active');
     closeNav();
     if(tab==='reports') drawCharts();
-  }));
+    logAction(`Switch to ${tab} tab`,`Switched to ${t.textContent.trim()}`);
+  };
+  $$('.tab').forEach(t=>{
+    t.addEventListener('click',()=>activateTab(t));
+    t.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); activateTab(t); } });
+  });
 }
 
 /* ===== Dept targets ===== */
@@ -289,7 +298,9 @@ function renderDeptTargets(){
   });
 }
 function toggleModal(show=true){
-  const m=$('#settingsModal'); m.classList.toggle('hidden', !show); m.style.display = show ? 'flex' : 'none';
+  const m=$('#settingsModal'); if(!m) return;
+  m.classList.toggle('hidden', !show);
+  m.setAttribute('aria-hidden', show ? 'false' : 'true');
   if(show){
     const box=$('#modal-targets'); box.innerHTML='';
     const current=loadLocal('wm_dept_targets', {});
@@ -297,13 +308,15 @@ function toggleModal(show=true){
       const v=current[d]??'';
       box.insertAdjacentHTML('beforeend',`<div class="target-row"><span class="target-pill">${d}</span><input class="input-field modal-dt target-input" data-dept="${d}" type="number" min="1" placeholder="—" value="${v!==''?v:''}"/></div>`);
     });
+    logAction('Open settings modal','Department targets opened');
+  } else {
+    logAction('Close settings modal','Department targets closed');
   }
 }
 function saveDeptTargets(){
   const obj={}; $$('.modal-dt').forEach(i=>{ const val=i.value.trim(); if(val!=='') obj[i.dataset.dept]=Number(val)});
-  saveLocal('wm_dept_targets', obj); renderDeptTargets(); recalcFreight(); toggleModal(false);
+  saveLocal('wm_dept_targets', obj); renderDeptTargets(); recalcFreight(); toggleModal(false); logAction('Save department targets','Department targets saved');
 }
-$('#settingsBtn').addEventListener?.('click', ()=>toggleModal(true));
 
 /* ===== Freight ===== */
 function freightRowTemplate(){
@@ -316,12 +329,28 @@ function freightRowTemplate(){
     <td class="hours-cell">0.0</td>
     <td class="caseshr-cell">0.0</td>
     <td class="status-cell"><span class="status-badge">Pending</span></td>
-    <td class="right"><button class="btn btn-danger btn-sm" onclick="deleteRow(this)">✖</button></td>
+    <td class="right"><button class="btn btn-danger btn-sm delete-row" type="button">✖</button></td>
   </tr>`;
 }
-function addFreightRow(){ $('#freight-tbody').insertAdjacentHTML('beforeend', freightRowTemplate()); hookFreightInputs() }
-function hookFreightInputs(){ $('#freight-tbody').querySelectorAll('input,select').forEach(el=>el.onchange=recalcFreight) }
-function deleteRow(el){ el.closest('tr').remove(); recalcFreight() }
+function addFreightRow(showFeedback=true){
+  $('#freight-tbody').insertAdjacentHTML('beforeend', freightRowTemplate());
+  const row=$('#freight-tbody').lastElementChild;
+  hookFreightInputs(row);
+  if(showFeedback) logAction('Add freight row','Added freight row');
+}
+function hookFreightInputs(scope){
+  const ctx=scope||document;
+  ctx.querySelectorAll('#freight-tbody input,#freight-tbody select').forEach(el=>{
+    el.addEventListener('input', recalcFreight);
+    el.addEventListener('change', recalcFreight);
+  });
+}
+function deleteRow(el){
+  const tr=el.closest('tr'); if(!tr) return;
+  const isFreight=Boolean(tr.closest('#freight-tbody'));
+  tr.remove();
+  if(isFreight) recalcFreight();
+}
 function badgeForCPH(cph, dept){
   const deptTargets = loadLocal('wm_dept_targets', {});
   const globalTarget = Number($('#target-cph').value)||45;
@@ -378,7 +407,7 @@ $('#importRoster').addEventListener('change', e=>{
   const reader=new FileReader(); reader.onload=()=>{
     const {rows}=parseCSV(reader.result);
     rows.forEach(r=>{
-      addFreightRow();
+      addFreightRow(false);
       const tr=$('#freight-tbody').lastElementChild;
       $('.assoc',tr).value = r['associate'] || r['name'] || '';
       $('.dept',tr).value = r['department'] || departments[0];
@@ -387,6 +416,7 @@ $('#importRoster').addEventListener('change', e=>{
       $('.cases',tr).value = r['cases'] || r['case'] || 0;
     });
     recalcFreight();
+    logAction('Import roster CSV','Roster imported');
     e.target.value='';
   };
   reader.readAsText(f);
@@ -396,16 +426,17 @@ $('#importOverstock').addEventListener('change', e=>{
   const reader=new FileReader(); reader.onload=()=>{
     const {rows}=parseCSV(reader.result);
     rows.forEach(r=>{
-      addOverstockRow();
+      addOverstockRow(false);
       const tr=$('#overstock-tbody').lastElementChild;
       $('.loc',tr).value = r['location']||'';
       $('.upc',tr).value = r['item/upc']||r['upc']||r['item']||'';
       $('.qty',tr).value = r['qty']||r['quantity']||0;
       $('.action',tr).value = r['action']||'Binned';
       const st = (r['status']||'Pending');
-      const td=tr.cells[4];
-      td.innerHTML=`<span class="status-badge ${st==='Done'?'status-excellent':(st==='In Progress'?'status-good':'status-danger')}">${st}</span>`;
+      const sel=tr.querySelector('.status-select');
+      if(sel){ sel.value=st; colorOverstockStatus(sel); }
     });
+    logAction('Import overstock CSV','Overstock imported');
     e.target.value='';
   };
   reader.readAsText(f);
@@ -425,8 +456,8 @@ function initZones(){
       <td>${z.total}</td><td>${completedInput}</td><td class="zone-percent">0%</td>
       <td class="zone-status"><span class="status-badge status-danger">❌ Incomplete</span></td></tr>`);
   });
-  tb.querySelectorAll('.zcount').forEach(i=>i.onchange=()=>updateZoneRow(i));
-  tb.querySelectorAll('.zdone').forEach(i=>i.onchange=()=>updateZoneRow(i));
+  tb.querySelectorAll('.zcount').forEach(i=>i.addEventListener('change',()=>updateZoneRow(i)));
+  tb.querySelectorAll('.zdone').forEach(i=>i.addEventListener('change',()=>updateZoneRow(i)));
   updateZoneTotals();
 }
 function zoneStatus(pct){ if(pct>=100) return ['✅ Complete','status-badge status-excellent']; if(pct>=75) return ['🟡 On Track','status-badge status-good']; if(pct>0) return ['⚠️ In Progress','status-badge status-warning']; return ['❌ Incomplete','status-badge status-danger'] }
@@ -460,8 +491,8 @@ function initTours(){
       <td class="tour-status"><span class="time-indicator" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffb81c;margin-right:6px"></span>Pending</td>
     </tr>`);
   });
-  $('#tours-tbody').querySelectorAll('.t-actual').forEach(i=>i.onchange=()=>updateTourRow(i));
-  $('#tours-tbody').querySelectorAll('.tck').forEach(i=>i.onchange=()=>updateTourRow(i));
+  $('#tours-tbody').querySelectorAll('.t-actual').forEach(i=>i.addEventListener('change',()=>updateTourRow(i)));
+  $('#tours-tbody').querySelectorAll('.tck').forEach(i=>i.addEventListener('change',()=>updateTourRow(i)));
 }
 function updateTourRow(input){
   const tr=input.closest('tr'); const target=tr.cells[1].textContent.trim(); const actual=$('.t-actual',tr).value;
@@ -471,13 +502,13 @@ function updateTourRow(input){
   if(allDone && actual){ statusText+=' • All checks done' }
   tr.querySelector('.tour-status').innerHTML = `<span class="time-indicator" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};margin-right:6px"></span>${statusText}`;
 }
-function exportToursCSV(){
+function exportToursCSV(showFeedback=true){
   const rows=[...$('#tours-tbody').rows];
   const headers=['Slot','Target','Actual','Produce','Meat','Deli','Bakery','Dairy','Frozen','Temp','Status'];
   const csv=[headers.join(',')].concat(rows.map(r=>{
     const vals=[r.cells[0].innerText.trim(),r.cells[1].innerText.trim(),$('.t-actual',r).value||'',...$$('.tck',r).map(c=>c.checked?'✔':''),r.cells[9].querySelector('input').value||'',r.cells[10].innerText.trim()];
     return vals.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
-  })).join('\n'); download('tours.csv',csv);
+  })).join('\n'); download('tours.csv',csv); if(showFeedback) logAction('Export tours CSV','Tours CSV exported');
 }
 
 /* ===== Overstock ===== */
@@ -487,35 +518,57 @@ function overstockRowTemplate(){
     <td><input class="input-field upc" placeholder="UPC or Description"/></td>
     <td><input class="input-field qty" type="number" min="0" placeholder="0"/></td>
     <td><select class="input-field action"><option>Binned</option><option>Flexed</option><option>Worked</option><option>RTV</option><option>Claims</option></select></td>
-    <td><select class="input-field status" onchange="colorOverstockStatus(this)"><option>Pending</option><option>In Progress</option><option>Done</option></select></td>
-    <td class="right"><button class="btn btn-danger" onclick="deleteRow(this)">✖</button></td>
+    <td class="status-cell">
+      <select class="input-field status-select">
+        <option>Pending</option><option>In Progress</option><option>Done</option>
+      </select>
+      <span class="status-badge status-danger status-display">Pending</span>
+    </td>
+    <td class="right"><button class="btn btn-danger delete-row" type="button">✖</button></td>
   </tr>`;
 }
-function addOverstockRow(){ $('#overstock-tbody').insertAdjacentHTML('beforeend', overstockRowTemplate()) }
-function colorOverstockStatus(sel){
-  const td=sel.closest('td'); let cls='status-badge status-warning', txt=sel.value;
-  if(sel.value==='Done') cls='status-badge status-excellent'; else if(sel.value==='In Progress') cls='status-badge status-good'; else cls='status-badge status-danger';
-  td.innerHTML=`<span class="${cls}">${txt}</span>`;
+function addOverstockRow(showFeedback=true){
+  $('#overstock-tbody').insertAdjacentHTML('beforeend', overstockRowTemplate());
+  const row=$('#overstock-tbody').lastElementChild;
+  hookOverstockInputs(row);
+  if(showFeedback) logAction('Add overstock item','Added overstock item');
 }
-function exportTableCSV(which){
+function colorOverstockStatus(sel){
+  const td=sel.closest('.status-cell');
+  const display=td?.querySelector('.status-display');
+  let cls='status-badge status-danger', txt=sel.value;
+  if(sel.value==='Done') cls='status-badge status-excellent'; else if(sel.value==='In Progress') cls='status-badge status-good';
+  if(display){ display.className=`${cls} status-display`; display.textContent=txt; }
+}
+function hookOverstockInputs(scope){
+  const ctx=scope||document;
+  ctx.querySelectorAll('#overstock-tbody input,#overstock-tbody select').forEach(el=>{
+    if(el.classList.contains('status-select')){
+      el.addEventListener('change', e=>{ colorOverstockStatus(e.target); logAction('Update overstock status','Updated overstock status'); });
+    } else {
+      el.addEventListener('change', ()=>logAction('Edit overstock row'));
+    }
+  });
+}
+function exportTableCSV(which, showFeedback=true){
   let rows=[], headers=[];
   if(which==='freight'){
     headers=['Associate','Department','Clock In','Clock Out','Cases','Hours','Cases/Hr','Status'];
     rows=[...$('#freight-tbody').rows].map(r=>[$('.assoc',r).value,$('.dept',r).value,$('.cin',r).value,$('.cout',r).value,$('.cases',r).value,r.cells[5].innerText.trim(),r.cells[6].innerText.trim(),r.cells[7].innerText.trim()]);
   }else if(which==='overstock'){
     headers=['Location','Item/UPC','Qty','Action','Status'];
-    rows=[...$('#overstock-tbody').rows].map(r=>[$('.loc',r).value,$('.upc',r).value,$('.qty',r).value,$('.action',r).value,(r.cells[4].querySelector('span')?.innerText || $('.status',r)?.value || '')]);
+    rows=[...$('#overstock-tbody').rows].map(r=>[$('.loc',r).value,$('.upc',r).value,$('.qty',r).value,$('.action',r).value,(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')]);
   }
-  const csv=[headers.join(',')].concat(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n'); download(`${which}.csv`,csv);
+  const csv=[headers.join(',')].concat(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n'); download(`${which}.csv`,csv); if(showFeedback) logAction(`Export ${which} CSV`,`${which.charAt(0).toUpperCase()+which.slice(1)} CSV exported`);
 }
-function exportZonesCSV(){
+function exportZonesCSV(showFeedback=true){
   const headers=['Zone','Total','Completed','Percent','Status'];
   const csv=[headers.join(',')].concat([...$('#zone-tbody').rows].map(r=>{
     const zone=r.cells[0].innerText.trim(), total=r.cells[1].innerText.trim();
     const compCell=r.cells[2]; const comp=(compCell.querySelector('.zcount')?.value) ?? (compCell.querySelector('.zdone')?.checked ? '1' : '0');
     const pct=r.cells[3].innerText.trim(); const st=r.cells[4].innerText.trim();
     return [zone,total,comp,pct,st].map(v=>`"${v}"`).join(',');
-  })).join('\n'); download('zones.csv',csv);
+  })).join('\n'); download('zones.csv',csv); if(showFeedback) logAction('Export zones CSV','Zones CSV exported');
 }
 
 /* ===== Coaching save/export ===== */
@@ -523,7 +576,7 @@ function getCoachingForm(){
   const issues=$$('.coach-issue:checked').map(c=>c.value);
   return {associate:$('#coach-assoc').value.trim(),dept:$('#coach-dept').value,follow:$('#coach-follow').value,goals:$('#coach-goals').value.trim(),notes:$('#coach-notes').value.trim(),issues};
 }
-function saveCoaching(){ const entry=getCoachingForm(); const list=loadLocal('coach_entries',[]); list.push({...entry, ts:new Date().toISOString()}); saveLocal('coach_entries',list); renderCoachingList(); toast('Coaching saved') }
+function saveCoaching(){ const entry=getCoachingForm(); const list=loadLocal('coach_entries',[]); list.push({...entry, ts:new Date().toISOString()}); saveLocal('coach_entries',list); renderCoachingList(); logAction('Save coaching entry','Coaching saved'); }
 function renderCoachingList(){
   const box=$('#coaching-list'); box.innerHTML=''; const list=loadLocal('coach_entries',[]);
   if(!list.length){ box.textContent='No entries yet.'; return; }
@@ -538,9 +591,9 @@ function exportCoaching(){
   const list=loadLocal('coach_entries',[]);
   const headers=['Timestamp','Associate','Dept','Issues','Follow-Up','Goals','Notes'];
   const csv=[headers.join(',')].concat(list.map(e=>[e.ts,e.associate,e.dept,(e.issues||[]).join('; '),e.follow,e.goals,e.notes].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n');
-  download('coaching.csv',csv);
+  download('coaching.csv',csv); logAction('Export coaching CSV','Coaching CSV exported');
 }
-function clearCoaching(){ localStorage.removeItem('coach_entries'); renderCoachingList(); toast('Coaching cleared') }
+function clearCoaching(){ localStorage.removeItem('coach_entries'); renderCoachingList(); logAction('Clear coaching entries','Coaching cleared'); }
 
 /* ===== Top-Stock Checklist ===== */
 const topA = Array.from({length:20}, (_,i)=>`A${i+1}`);
@@ -561,19 +614,19 @@ function initTopstock(){
       <input class="input-field ts-notes" data-id="${id}" placeholder="Notes (bins, modular, safety, etc.)"/>
     </div>`;
   [...topA,...topB].forEach(id=>grid.insertAdjacentHTML('beforeend', makeCard(id)));
-  $$('.ts-check').forEach(c=>c.onchange=updateTopstockProgress);
-  $$('.ts-status').forEach(s=>s.onchange=updateTopstockProgress);
+  $$('.ts-check').forEach(c=>c.addEventListener('change',()=>{updateTopstockProgress(); logAction('Toggle top-stock checkbox','Top-stock updated');}));
+  $$('.ts-status').forEach(s=>s.addEventListener('change',()=>{updateTopstockProgress(); logAction('Update top-stock status','Top-stock updated');}));
   updateTopstockProgress();
 }
 function updateTopstockProgress(){
   const checks=$$('.ts-check'); const total=checks.length; const verified=checks.filter(c=>c.checked).length;
   const pct=Math.round((verified/total)*100)||0; $('#topstock-progress').style.width=pct+'%'; $('#topstock-progress').textContent=pct+'% Verified';
 }
-function markTopstockAll(val){ $$('.ts-check').forEach(c=>c.checked=val); updateTopstockProgress() }
-function exportTopstockCSV(){
+function markTopstockAll(val, showFeedback=true){ $$('.ts-check').forEach(c=>c.checked=val); updateTopstockProgress(); if(showFeedback) logAction(val?'Mark all top-stock verified':'Clear all top-stock','Top-stock checkboxes updated'); }
+function exportTopstockCSV(showFeedback=true){
   const ids=[...topA,...topB]; const headers=['Aisle','Verified','Status','Notes'];
   const rows=ids.map(id=>{ const v=Boolean(document.querySelector(`.ts-check[data-id="${id}"]`)?.checked); const st=document.querySelector(`.ts-status[data-id="${id}"]`)?.value||''; const note=document.querySelector(`.ts-notes[data-id="${id}"]`)?.value||''; return [id,v?'Yes':'No',st,note]; });
-  const csv=[headers.join(',')].concat(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n'); download('topstock.csv',csv);
+  const csv=[headers.join(',')].concat(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','))).join('\n'); download('topstock.csv',csv); if(showFeedback) logAction('Export top-stock CSV','Top-stock CSV exported');
 }
 
 /* ===== Charts (placeholder simple) ===== */
@@ -593,7 +646,7 @@ function snapshot(){
   // tours
   const tours=[...$('#tours-tbody').rows].map(r=>({slot:r.cells[0].innerText.trim(),target:r.cells[1].innerText.trim(),actual:$('.t-actual',r).value||'',checks:$$('.tck',r).map(c=>c.checked),temp:r.cells[9].querySelector('input').value||''}));
   // overstock
-  const overstock=[...$('#overstock-tbody').rows].map(r=>({loc:$('.loc',r).value,upc:$('.upc',r).value,qty:Number($('.qty',r).value||0),action:$('.action',r).value,status:(r.cells[4].querySelector('span')?.innerText || $('.status',r)?.value || '')}));
+  const overstock=[...$('#overstock-tbody').rows].map(r=>({loc:$('.loc',r).value,upc:$('.upc',r).value,qty:Number($('.qty',r).value||0),action:$('.action',r).value,status:(r.querySelector('.status-display')?.innerText || r.querySelector('.status-select')?.value || '')}));
   // topstock
   const topstock=[...topA,...topB].map(id=>({id,ver:document.querySelector(`.ts-check[data-id="${id}"]`)?.checked||false,status:document.querySelector(`.ts-status[data-id="${id}"]`)?.value||'',notes:document.querySelector(`.ts-notes[data-id="${id}"]`)?.value||''}));
   const coaching=loadLocal('coach_entries',[]);
@@ -615,8 +668,8 @@ function restore(state){
   initTours();
   if(state?.tours){ state.tours.forEach((t,i)=>{const tr=$('#tours-tbody').rows[i]; if(!tr) return; $('.t-actual',tr).value=t.actual||''; const cks=$$('.tck',tr); (t.checks||[]).forEach((v,ix)=>{ if(cks[ix]) cks[ix].checked=!!v; }); tr.cells[9].querySelector('input').value=t.temp||''; updateTourRow($('.t-actual',tr)); }); }
   // overstock
-  $('#overstock-tbody').innerHTML=''; (state?.overstock||[{},{},{}]).forEach(()=>addOverstockRow());
-  (state?.overstock||[]).forEach((o,i)=>{const tr=$('#overstock-tbody').rows[i]; if(!tr) return; $('.loc',tr).value=o.loc||''; $('.upc',tr).value=o.upc||''; $('.qty',tr).value=o.qty||0; $('.action',tr).value=o.action||'Binned'; tr.cells[4].innerHTML=`<span class="status-badge ${o.status==='Done'?'status-excellent':(o.status==='In Progress'?'status-good':'status-danger')}">${o.status||'Pending'}</span>`;});
+  $('#overstock-tbody').innerHTML=''; (state?.overstock||[{},{},{}]).forEach(()=>addOverstockRow(false));
+  (state?.overstock||[]).forEach((o,i)=>{const tr=$('#overstock-tbody').rows[i]; if(!tr) return; $('.loc',tr).value=o.loc||''; $('.upc',tr).value=o.upc||''; $('.qty',tr).value=o.qty||0; $('.action',tr).value=o.action||'Binned'; const sel=tr.querySelector('.status-select'); if(sel){ sel.value=o.status||'Pending'; colorOverstockStatus(sel); }});
   // coaching
   if(state?.coaching) saveLocal('coach_entries', state.coaching); renderCoachingList();
   // topstock
@@ -631,31 +684,61 @@ function storageAvailable(){
 function initStorageButtons(){
   const saveBtn=$('#saveBtn'), loadBtn=$('#loadBtn'), exportBtn=$('#exportBtn'), clearBtn=$('#clearBtn'), printBtn=$('#printBtn');
   const importInput=document.createElement('input'); importInput.type='file'; importInput.accept='application/json'; importInput.style.display='none'; document.body.appendChild(importInput);
-  saveBtn.onclick=()=>{
+  saveBtn?.addEventListener('click',()=>{
     try{
       const state=snapshot();
-      if(storageAvailable()){ saveLocal('wm_dashboard_state', state); toast('Saved to this device'); }
-      else{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='wm_dashboard_state_backup.json'; document.body.appendChild(a); a.click(); a.remove(); toast('Downloaded backup JSON'); }
-    }catch(e){ alert('Save failed: '+e.message); }
-  };
-  loadBtn.onclick=()=>{
+      let message='';
+      if(storageAvailable()){ saveLocal('wm_dashboard_state', state); message='Saved to this device'; }
+      else{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='wm_dashboard_state_backup.json'; document.body.appendChild(a); a.click(); a.remove(); message='Downloaded backup JSON'; }
+      logAction('Save dashboard',message||'Dashboard saved');
+    }catch(e){ alert('Save failed: '+e.message); console.error(e); }
+  });
+  loadBtn?.addEventListener('click',()=>{
     try{
       if(storageAvailable()){
         const raw=localStorage.getItem('wm_dashboard_state');
-        if(raw){ restore(JSON.parse(raw)); toast('Loaded saved state'); return; }
+        if(raw){ restore(JSON.parse(raw)); logAction('Load dashboard','Loaded saved state'); return; }
       }
-      importInput.onchange=function(){ const f=this.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ restore(JSON.parse(r.result)); toast('Loaded from file'); }catch(e){ alert('Invalid backup file.'); } }; r.readAsText(f); };
+      importInput.onchange=function(){ const f=this.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ restore(JSON.parse(r.result)); logAction('Load dashboard','Loaded from backup file'); }catch(e){ alert('Invalid backup file.'); } }; r.readAsText(f); };
       importInput.click();
-    }catch(e){ alert('Load failed: '+e.message); }
-  };
-  exportBtn.onclick=()=>{ exportTableCSV('freight'); exportTableCSV('overstock'); exportZonesCSV(); exportToursCSV(); exportTopstockCSV(); };
-  clearBtn.onclick=()=>{ if(confirm('Clear all tables (does not delete coaching)?')){ localStorage.removeItem('wm_dashboard_state'); restore({}); toast('Cleared'); } };
-  printBtn.onclick=()=>{ window.print(); };
+    }catch(e){ alert('Load failed: '+e.message); console.error(e); }
+  });
+  exportBtn?.addEventListener('click',()=>{ exportTableCSV('freight',false); exportTableCSV('overstock',false); exportZonesCSV(false); exportToursCSV(false); exportTopstockCSV(false); logAction('Export all CSVs','All CSVs exported'); });
+  clearBtn?.addEventListener('click',()=>{ if(confirm('Clear all tables (does not delete coaching)?')){ localStorage.removeItem('wm_dashboard_state'); restore({}); logAction('Clear dashboard data','Dashboard cleared'); } });
+  printBtn?.addEventListener('click',()=>{ window.print(); logAction('Print/PDF dashboard','Print/PDF triggered'); });
+}
+
+function initClickActions(){
+  $('#settingsBtn')?.addEventListener('click',()=>toggleModal(true));
+  $('#closeSettingsBtn')?.addEventListener('click',()=>toggleModal(false));
+  $('#saveDeptTargetsBtn')?.addEventListener('click',saveDeptTargets);
+  const modalBackdrop=$('#settingsModal');
+  modalBackdrop?.addEventListener('click',e=>{ if(e.target===modalBackdrop) toggleModal(false); });
+
+  $('#addFreightBtn')?.addEventListener('click',()=>addFreightRow());
+  $('#addOverstockBtn')?.addEventListener('click',()=>addOverstockRow());
+  $('#freight-tbody')?.addEventListener('click',e=>{ const btn=e.target.closest('.delete-row'); if(btn){ deleteRow(btn); logAction('Delete freight row','Removed freight row'); } });
+  $('#overstock-tbody')?.addEventListener('click',e=>{ const btn=e.target.closest('.delete-row'); if(btn){ deleteRow(btn); logAction('Delete overstock row','Removed overstock row'); } });
+
+  $('#markTopstockAll')?.addEventListener('click',()=>markTopstockAll(true));
+  $('#clearTopstockAll')?.addEventListener('click',()=>markTopstockAll(false));
+  $('#exportTopstock')?.addEventListener('click',()=>exportTopstockCSV());
+  $('#exportTopstockQuick')?.addEventListener('click',()=>exportTopstockCSV());
+
+  $('#saveCoachingBtn')?.addEventListener('click',saveCoaching);
+  $('#exportCoachingBtn')?.addEventListener('click',exportCoaching);
+  $('#clearCoachingBtn')?.addEventListener('click',clearCoaching);
+
+  $$('.quick-export').forEach(btn=>btn.addEventListener('click',()=>exportTableCSV(btn.dataset.export)));
+  $('#exportZonesBtn')?.addEventListener('click',()=>exportZonesCSV());
+  $('#exportToursBtn')?.addEventListener('click',()=>exportToursCSV());
+
+  $('#settingsModal')?.querySelector('.modal')?.addEventListener('click',e=>e.stopPropagation());
 }
 
 /* ===== Init ===== */
 function init(){
-  initHeader(); initTabs(); renderDeptTargets(); addFreightRow(); addFreightRow(); addFreightRow(); recalcFreight(); initZones(); initTours(); initStorageButtons(); initTopstock(); renderCoachingList();
+  initHeader(); initTabs(); renderDeptTargets(); addFreightRow(); addFreightRow(); addFreightRow(); recalcFreight(); initZones(); initTours(); initStorageButtons(); initTopstock(); renderCoachingList(); initClickActions();
   const state=loadLocal('wm_dashboard_state', null); if(state) restore(state);
 }
 document.addEventListener('DOMContentLoaded', init);
