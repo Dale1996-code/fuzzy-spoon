@@ -976,7 +976,22 @@ function setupBulk(containerSel, toolbarSel){
 function initSwipeables(){
   let startX=0, target=null;
   document.addEventListener('pointerdown',e=>{ const row=e.target.closest('.swipeable'); if(row){ startX=e.clientX; target=row; } });
-  document.addEventListener('pointerup',e=>{ if(!target) return; const dx=e.clientX-startX; if(Math.abs(dx)>60){ if(dx>0){ target.classList.add('swiped'); target.querySelector('.status-select')?.value='Done'; } else { target.classList.add('swiped-left'); target.querySelector('.status-select')?.value='Pending'; } } target=null; updateInsights(); });
+  document.addEventListener('pointerup',e=>{
+    if(!target) return;
+    const dx=e.clientX-startX;
+    if(Math.abs(dx)>60){
+      const s=target.querySelector('.status-select');
+      if(dx>0){
+        target.classList.add('swiped');
+        if(s) s.value='Done';
+      } else {
+        target.classList.add('swiped-left');
+        if(s) s.value='Pending';
+      }
+    }
+    target=null;
+    updateInsights();
+  });
 }
 
 /* ===== History ===== */
